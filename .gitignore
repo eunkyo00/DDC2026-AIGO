@@ -1,0 +1,39 @@
+# 데이터 (용량이 크고 대회 규정상 재배포 불가 - 구글 드라이브로만 공유)
+data/
+*.wav
+*.WAV
+
+# EDA 산출물 (팀원마다 로컬에서 재생성)
+eda_outputs/
+
+# 전처리 매니페스트 (로컬 절대경로를 담고 있고 재생성 가능하므로 커밋하지 않음)
+manifests/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# 모델 가중치/체크포인트 (미션 폴더 자체 .gitignore가 우선하지만 루트에서도 방어)
+*.pt
+*.pth
+*.ckpt
+checkpoint/
+pretrained_weights/
+
+# OS / 에디터
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Claude Code 세션 로컬 상태 (공유 대상 아님)
+.claude/

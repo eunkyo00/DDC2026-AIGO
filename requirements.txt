@@ -1,0 +1,10 @@
+# 인프라 / EDA / 공통 전처리 (A 담당) 실행에 필요한 최소 의존성.
+# 미션별 모델 학습 의존성(torch, transformers, wav2vec2 등)은 각 mission 폴더의
+# 자체 requirements.txt에서 관리한다 (권장역할분담.md 폴더 구조 참고).
+
+numpy>=1.24
+pandas>=2.0
+soundfile>=0.12
+librosa>=0.10
+matplotlib>=3.7
+tqdm>=4.65
