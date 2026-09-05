@@ -12,8 +12,8 @@ import json
 from pathlib import Path
 from typing import Any, List, Optional
 
-import config
-from utils.io import collect_split_pairs
+from common import config
+from common.utils.io import collect_split_pairs
 
 
 def _find_key_recursive(obj: Any, key_candidates: List[str]) -> Optional[Any]:

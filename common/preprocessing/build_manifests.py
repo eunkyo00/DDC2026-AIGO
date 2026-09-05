@@ -22,10 +22,10 @@ import json
 from pathlib import Path
 from typing import List, Optional
 
-import config
-from utils.filter_seoul import is_seoul
-from utils.io import collect_split_pairs
-from preprocessing.preprocessing_utils import get_speaker_id, get_symptom_labels, get_utterances
+from common import config
+from common.utils.filter_seoul import is_seoul
+from common.utils.io import collect_split_pairs
+from common.preprocessing.preprocessing_utils import get_speaker_id, get_symptom_labels, get_utterances
 
 
 def _load_label(json_path: Path) -> Optional[dict]:

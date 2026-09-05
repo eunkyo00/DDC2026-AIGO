@@ -19,13 +19,16 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 
 # 압축 해제된 데이터셋의 최상위 폴더.
-# 기본값은 프로젝트 폴더 바로 밑의 data/emergency_call_dataset (이미 .gitignore에 data/ 포함됨).
+# 기본값은 프로젝트 루트(이 파일은 common/config.py이므로 한 단계 위) 밑의
+# data/emergency_call_dataset (이미 .gitignore에 data/ 포함됨).
 # 팀원 각자 로컬 경로가 다르면(예: 다른 드라이브, 다른 폴더명) 절대경로를 직접 쓰지 말고
 # 환경변수 EMERGENCY_CALL_DATA_ROOT로 오버라이드해서 각자 로컬 설정을 커밋되는 코드에서 분리한다.
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
 DATA_ROOT = Path(
     os.environ.get(
         "EMERGENCY_CALL_DATA_ROOT",
-        str(Path(__file__).resolve().parent / "data" / "emergency_call_dataset"),
+        str(_PROJECT_ROOT / "data" / "emergency_call_dataset"),
     )
 )
 
@@ -41,8 +44,8 @@ LABEL_DIR_KEYWORD = "라벨링데이터"  # 예: "2.라벨링데이터", "TL_서
 AUDIO_EXT = ".wav"
 LABEL_EXT = ".json"
 
-# EDA 산출물(csv, plot) 저장 위치
-EDA_OUTPUT_DIR = Path(__file__).resolve().parent / "eda_outputs"
+# EDA 산출물(csv, plot) 저장 위치 (프로젝트 루트 기준)
+EDA_OUTPUT_DIR = _PROJECT_ROOT / "eda_outputs"
 
 # ---------------------------------------------------------------------------
 # 지역 필터링 (서울만 학습에 사용)

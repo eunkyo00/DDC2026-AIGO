@@ -21,7 +21,7 @@ matplotlib.use("Agg")  # 서버/헤드리스 환경에서도 저장 가능하도
 import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt
 
-import config
+from common import config
 
 # 라벨 값(gender/urgencyLevel/symptom 등)이 한글이라 기본 폰트(DejaVu Sans)로는 깨져 보인다.
 # 팀원 OS(Windows/Mac)에 흔히 설치된 한글 폰트 후보를 순서대로 찾아 적용하고,
@@ -37,9 +37,9 @@ else:
         "[경고] 한글 폰트를 찾지 못했습니다. plot의 한글 라벨이 깨져 보일 수 있습니다. "
         "(Windows: 'Malgun Gothic', Mac: 'AppleGothic'/'NanumGothic' 설치 여부 확인)"
     )
-from utils.filter_seoul import is_seoul
-from utils.io import collect_split_pairs
-from preprocessing.preprocessing_utils import get_symptom_labels, get_speaker_id, get_utterances
+from common.utils.filter_seoul import is_seoul
+from common.utils.io import collect_split_pairs
+from common.preprocessing.preprocessing_utils import get_symptom_labels, get_speaker_id, get_utterances
 
 
 def _safe_get(d: dict, key: str, default=None):

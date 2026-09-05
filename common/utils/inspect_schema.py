@@ -16,8 +16,8 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-import config
-from utils.io import collect_split_pairs
+from common import config
+from common.utils.io import collect_split_pairs
 
 # 이 이상의 고유값이 나오면 범주형 통계 출력에서 제외 (자유 텍스트/ID성 필드로 간주)
 CATEGORICAL_MAX_UNIQUE = 30

@@ -12,7 +12,7 @@ import argparse
 from pathlib import Path
 from typing import Dict, Iterable, List, NamedTuple, Optional
 
-import config
+from common import config
 
 
 class PairedFile(NamedTuple):

@@ -4,12 +4,27 @@
 데이터 스캔·EDA·전처리 파이프라인 문서. 자세한 대회 규정은 `0.중요/문제_분석.md`,
 역할 분담은 `0.중요/권장역할분담.md` 참고.
 
+## 0. 코드 위치
+
+이 문서에서 다루는 코드는 전부 레포 루트의 `common/` 패키지 밑에 있다 (미션별 코드는
+`mission-1/`, `mission-2/`, `mission-3/`에 각자 작성). Python import/실행은 항상 레포
+루트에서 `common.` 접두사를 붙여서 한다 (예: `python -m common.eda.eda_all`,
+`from common.preprocessing.preprocessing_utils import ...`).
+
+```
+common/
+├── config.py
+├── utils/            (io, inspect_schema, filter_seoul, audio_check)
+├── preprocessing/    (preprocessing_utils, build_manifests)
+└── eda/              (eda_all)
+```
+
 ## 1. 데이터 위치 & 구조
 
-로컬 데이터 루트는 `config.py`의 `DATA_ROOT`로 관리한다 (환경변수 `EMERGENCY_CALL_DATA_ROOT`로
-팀원마다 다른 경로 오버라이드 가능).
+로컬 데이터 루트는 `common/config.py`의 `DATA_ROOT`로 관리한다 (환경변수
+`EMERGENCY_CALL_DATA_ROOT`로 팀원마다 다른 경로 오버라이드 가능).
 
-실제 확인된 폴더 구조 (`utils/inspect_schema.py`, `utils/io.py`로 확인):
+실제 확인된 폴더 구조 (`common/utils/inspect_schema.py`, `common/utils/io.py`로 확인):
 
 ```
 {DATA_ROOT}/
@@ -24,7 +39,7 @@
 
 wav/json은 **파일명(stem)이 완전히 동일**해서 그 기준으로 1:1 매칭된다 (json 내부의
 `audioPath` 필드는 원본 배포 서버 경로라 로컬 매칭에 쓰지 않음). 매칭률은 Training/Validation
-둘 다 100% (누락 0건, `utils/io.py` 확인).
+둘 다 100% (누락 0건, `common/utils/io.py` 확인).
 
 ### 라벨 json 스키마 (실측)
 
@@ -47,23 +62,25 @@ wav/json은 **파일명(stem)이 완전히 동일**해서 그 기준으로 1:1 �
 
 ```bash
 # 0) 최초 1회: json 스키마 실측 (키/타입/고유값 분포 확인)
-python -m utils.inspect_schema
+python -m common.utils.inspect_schema
 
 # 1) wav/json 매칭 상태 확인
-python -m utils.io
+python -m common.utils.io
 
 # 2) 서울 지역 필터링 확인 (학습은 서울만 사용해야 함)
-python -m utils.filter_seoul
+python -m common.utils.filter_seoul
 
 # 3) 오디오 샘플레이트/채널/길이 일관성 확인
-python -m utils.audio_check
+python -m common.utils.audio_check
 
 # 4) 라벨 분포 EDA (csv + png를 eda_outputs/에 저장)
-python -m eda.eda_all
+python -m common.eda.eda_all
 
 # 5) 미션별 전처리 매니페스트 생성 (manifests/에 저장)
-python -m preprocessing.build_manifests
+python -m common.preprocessing.build_manifests
 ```
+
+모든 명령은 **레포 루트에서** 실행해야 한다 (`common`을 모듈로 찾아야 하므로).
 
 모든 스크립트는 `--data-root`로 데이터 경로를, `--split Training/Validation/both`로 대상
 split을 지정할 수 있다 (기본값은 `both`).
@@ -95,10 +112,7 @@ threshold 조정을 고려할 만한 수준. 오디오가 이미 8kHz/mono로 �
 
 ## 4. 미션별 전처리 로직
 
-오디오 원본은 미리 잘라서 별도 파일로 저장하지 않는다. **wav는 그대로 두고, "어디를 어떻게
-잘라 쓸지"에 대한 인덱스(매니페스트)만 미리 만들어두고, 실제 crop/pad/feature 추출은 각 미션의
-dataloader에서 그때그때 수행**하는 구조다. 발화 단위로 실제 오디오 파일을 다 잘라두면
-통화당 수십 개씩 파일이 늘어나 디스크 용량이 감당되지 않기 때문.
+오디오 원본은 미리 잘라서 별도 파일로 저장하지 않는다. **wav는 그대로 두고, "어디를 어떻게 잘라 쓸지"에 대한 인덱스(매니페스트)만 미리 만들어두고, 실제 crop/pad/feature 추출은 각 미션의 dataloader에서 그때그때 수행**하는 구조다. 발화 단위로 실제 오디오 파일을 다 잘라두면 통화당 수십 개씩 파일이 늘어나 디스크 용량이 감당되지 않기 때문.
 
 공통 처리 흐름은 **자르기(crop) → 길이 맞추기(pad/trim) → 숫자로 변환(MFCC/Mel 또는 텍스트)**
 3단계이고, 미션마다 "뭘 자르고 뭘 라벨로 쓰는지"만 다르다.
@@ -110,7 +124,7 @@ dataloader에서 그때그때 수행**하는 구조다. 발화 단위로 실제 
   5초 길이로 고정(짧으면 0-padding, 길면 trim) → MFCC(40계수) 추출
 - **라벨**: 통화 json의 `gender`
 - **관련 함수**: `crop_segment` → `pad_or_trim_to_length` → `extract_mfcc`
-  (`preprocessing/preprocessing_utils.py`)
+  (`common/preprocessing/preprocessing_utils.py`)
 - **실측 성능**: 100건 기준 샘플당 평균 24ms → 전체 29,200건도 수 분 내 처리 가능
 
 ### Mission 2 — 화자 분류 (신고자 vs 119대원)
@@ -139,7 +153,7 @@ dataloader에서 그때그때 수행**하는 구조다. 발화 단위로 실제 
 
 ### 서울 필터링
 
-`utils/filter_seoul.py`가 `address` 필드(알려진 키 우선, 실패 시 "서울" 키워드를 포함하는
+`common/utils/filter_seoul.py`가 `address` 필드(알려진 키 우선, 실패 시 "서울" 키워드를 포함하는
 문자열을 재귀 탐색하는 fallback)로 서울 여부를 판정한다. `build_manifests.py`는 매니페스트
 생성 시 이 필터를 항상 적용한다 (현재 배포 데이터는 Training/Validation 모두 100% 서울이라
 실질적으로 걸러지는 데이터는 없지만, 향후 다른 지역 데이터가 섞여도 안전하도록 방어 코드로 유지).
@@ -147,7 +161,7 @@ dataloader에서 그때그때 수행**하는 구조다. 발화 단위로 실제 
 ## 5. 매니페스트 파일 스펙 (`manifests/`)
 
 로컬 절대경로를 담고 있고 언제든 재생성 가능해서 `.gitignore`에 포함되어 있다. 각자
-`python -m preprocessing.build_manifests --data-root <자기 경로>`로 재생성해서 쓰면 된다.
+`python -m common.preprocessing.build_manifests --data-root <자기 경로>`로 재생성해서 쓰면 된다.
 
 | 파일 | 컬럼 | 설명 |
 |---|---|---|
@@ -177,8 +191,9 @@ dataloader에서 그때그때 수행**하는 구조다. 발화 단위로 실제 
 | `extract_utterance_text(label, speaker_id=None)` | 발화 텍스트 리스트 (화자 필터링 가능) |
 | `filter_symptom_labels` / `get_symptom_labels` | symptom을 9개 타겟 클래스로 필터링 |
 
-모든 함수는 `preprocessing/preprocessing_utils.py`에 docstring과 함께 정의되어 있으니
-미션별 코드에서 필요한 것만 `from preprocessing.preprocessing_utils import ...`로 가져다 쓰면 된다.
+모든 함수는 `common/preprocessing/preprocessing_utils.py`에 docstring과 함께 정의되어 있으니
+미션별 코드에서 필요한 것만 `from common.preprocessing.preprocessing_utils import ...`로
+가져다 쓰면 된다.
 
 ## 7. 재현 방법 (다른 팀원 환경)
 
@@ -190,8 +205,8 @@ export EMERGENCY_CALL_DATA_ROOT="/path/to/emergency_call_dataset"   # mac/linux
 # 또는
 set EMERGENCY_CALL_DATA_ROOT=D:\data\emergency_call_dataset          # windows
 
-python -m eda.eda_all
-python -m preprocessing.build_manifests
+python -m common.eda.eda_all
+python -m common.preprocessing.build_manifests
 ```
 
 ## 8. 지켜야 할 제약 (재확인)

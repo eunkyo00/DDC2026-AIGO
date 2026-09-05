@@ -15,7 +15,7 @@ from typing import Any, Dict, List, Optional, Sequence
 import numpy as np
 import soundfile as sf
 
-import config
+from common import config
 
 # ---------------------------------------------------------------------------
 # 오디오 로딩

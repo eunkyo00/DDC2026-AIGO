@@ -15,8 +15,8 @@ from typing import List, Optional
 
 import soundfile as sf
 
-import config
-from utils.io import collect_split_pairs
+from common import config
+from common.utils.io import collect_split_pairs
 
 
 class AudioInfo:
