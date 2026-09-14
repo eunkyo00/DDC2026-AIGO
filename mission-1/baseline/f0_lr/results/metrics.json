@@ -1,0 +1,200 @@
+{
+  "dataset": {
+    "train_calls": 22388,
+    "internal_validation_calls": 5597,
+    "split_sha256": "04b5018778321f775a0bf95949a37636090d4df4e3710b16627dfee309408f06",
+    "seed": 42
+  },
+  "model": {
+    "name": "F0 + acoustic LogisticRegression",
+    "features": [
+      "f0_mean_hz_mean",
+      "f0_mean_hz_median",
+      "f0_median_hz_mean",
+      "f0_median_hz_median",
+      "f0_std_hz_mean",
+      "f0_std_hz_median",
+      "voiced_ratio_mean",
+      "voiced_ratio_median",
+      "rms_mean",
+      "rms_median",
+      "duration_s_mean",
+      "duration_s_median",
+      "zcr_mean",
+      "zcr_median",
+      "spectral_centroid_hz_mean",
+      "spectral_centroid_hz_median",
+      "n_segments",
+      "total_duration_s",
+      "reliable_f0_segment_ratio"
+    ],
+    "aggregation": "per-segment feature mean and median, plus n_segments, total duration, reliable-F0 segment ratio",
+    "imputer": "Train-only median",
+    "scaler": "StandardScaler fit on Train only",
+    "classifier": {
+      "solver": "lbfgs",
+      "max_iter": 1000,
+      "random_state": 42,
+      "class_weight": null
+    },
+    "n_iter": 49,
+    "scaler_fit_samples": 22388
+  },
+  "overall": {
+    "n": 5597,
+    "accuracy": 0.9120957655887082,
+    "male_n": 2620,
+    "female_n": 2977
+  },
+  "gender_accuracy": {
+    "M": {
+      "n": 2620,
+      "accuracy": 0.899618320610687,
+      "male_n": 2620,
+      "female_n": 0
+    },
+    "F": {
+      "n": 2977,
+      "accuracy": 0.9230769230769231,
+      "male_n": 0,
+      "female_n": 2977
+    }
+  },
+  "confusion_matrix": {
+    "labels": [
+      "M",
+      "F"
+    ],
+    "matrix": [
+      [
+        2357,
+        263
+      ],
+      [
+        229,
+        2748
+      ]
+    ]
+  },
+  "prediction_counts": {
+    "M": 2586,
+    "F": 3011
+  },
+  "duration_groups": {
+    "<8s": {
+      "n": 23,
+      "accuracy": 0.9130434782608695,
+      "male_n": 15,
+      "female_n": 8
+    },
+    "8–16s": {
+      "n": 328,
+      "accuracy": 0.9085365853658537,
+      "male_n": 174,
+      "female_n": 154
+    },
+    "16–32s": {
+      "n": 2754,
+      "accuracy": 0.9164851125635439,
+      "male_n": 1359,
+      "female_n": 1395
+    },
+    "32–64s": {
+      "n": 2231,
+      "accuracy": 0.9108023307933663,
+      "male_n": 972,
+      "female_n": 1259
+    },
+    ">=64s": {
+      "n": 261,
+      "accuracy": 0.8812260536398467,
+      "male_n": 100,
+      "female_n": 161
+    }
+  },
+  "f0_quality_groups": {
+    "no_reliable_f0": {
+      "n": 0,
+      "accuracy": null,
+      "male_n": 0,
+      "female_n": 0
+    },
+    "some_reliable_f0": {
+      "n": 5597,
+      "accuracy": 0.9120957655887082,
+      "male_n": 2620,
+      "female_n": 2977
+    },
+    "low_reliable_ratio_lt_0.5": {
+      "n": 2,
+      "accuracy": 1.0,
+      "male_n": 0,
+      "female_n": 2
+    },
+    "reliable_ratio_ge_0.5": {
+      "n": 5595,
+      "accuracy": 0.9120643431635389,
+      "male_n": 2620,
+      "female_n": 2975
+    },
+    "has_low_voiced_segment": {
+      "n": 4687,
+      "accuracy": 0.9127373586515894,
+      "male_n": 2100,
+      "female_n": 2587
+    },
+    "no_low_voiced_segment": {
+      "n": 910,
+      "accuracy": 0.9087912087912088,
+      "male_n": 520,
+      "female_n": 390
+    },
+    "tone_flag_present": {
+      "n": 0,
+      "accuracy": null,
+      "male_n": 0,
+      "female_n": 0
+    },
+    "no_tone_flag": {
+      "n": 5597,
+      "accuracy": 0.9120957655887082,
+      "male_n": 2620,
+      "female_n": 2977
+    }
+  },
+  "f0_quality": {
+    "segments": 442639,
+    "raw_f0_success_segments": 442616,
+    "raw_f0_failure_segments": 23,
+    "raw_f0_success_rate": 0.9999480389211073,
+    "raw_f0_failure_rate": 5.1961078892732e-05,
+    "baseline_reliable_f0_segments": 378941,
+    "baseline_reliable_f0_rate": 0.8560949215952504,
+    "baseline_unreliable_f0_segments": 63698,
+    "baseline_unreliable_f0_rate": 0.1439050784047497,
+    "low_voiced_segments": 63685,
+    "low_voiced_segment_rate": 0.1438757090992886,
+    "tone_dominated_segments": 0,
+    "tone_dominated_segment_rate": 0.0,
+    "raw_voiced_frames": 68921452,
+    "raw_low_frames": 88654,
+    "raw_high_frames": 13937440,
+    "raw_low_frame_rate": 0.0012863048793574459,
+    "raw_high_frame_rate": 0.20222208899487493,
+    "all_pitch_frames": 91329156
+  },
+  "majority_baseline_accuracy": 0.5318920850455601,
+  "absolute_improvement": 0.3802036805431481,
+  "runtime": {
+    "elapsed_seconds": 1903.3203630447388,
+    "workers": 6,
+    "versions": {
+      "python": "3.12.2",
+      "numpy": "2.2.2",
+      "pandas": "2.3.0",
+      "scikit-learn": "1.9.1",
+      "soundfile": "0.13.1",
+      "praat-parselmouth": "0.4.7"
+    }
+  }
+}

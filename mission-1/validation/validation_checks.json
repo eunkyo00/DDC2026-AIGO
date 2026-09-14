@@ -1,0 +1,39 @@
+{
+  "call_id_overlap": 0,
+  "wav_path_overlap": 0,
+  "relative_wav_path_overlap": 0,
+  "filename_prefix_overlap": 0,
+  "segment_leakage_calls": 0,
+  "unassigned_segments": 0,
+  "duplicate_call_ids": 0,
+  "missing_gender": 0,
+  "conflicting_gender": 0,
+  "official_validation_calls_in_split": 0,
+  "all_segment_partition_counts": {
+    "train": 681604,
+    "internal_validation": 170246
+  },
+  "reporter_segments_checked": 442639,
+  "segment_rule": "Each existing EDA row inherits exactly one partition from its unique parent call_id; no segment index copied",
+  "additional_ids": {
+    "_id": {
+      "internal_overlap": 0,
+      "basis": "Inherited EDA global uniqueness among parsed calls: a subset cannot introduce a duplicate. Raw IDs not reread.",
+      "eda_unique_values": 32838
+    },
+    "recordId": {
+      "internal_overlap": 0,
+      "basis": "Inherited EDA global uniqueness among parsed calls: a subset cannot introduce a duplicate. Raw IDs not reread.",
+      "eda_unique_values": 32838
+    },
+    "audioPath": {
+      "internal_overlap": 0,
+      "basis": "Inherited EDA global uniqueness among parsed calls: a subset cannot introduce a duplicate. Raw IDs not reread.",
+      "eda_unique_values": 32838
+    }
+  },
+  "same_person": "확인 필요: speaker is a role, not a persistent person identifier",
+  "edited_original_audio": "확인 필요: edited/re-encoded audio and event identity not established",
+  "audio_bytes": "Prior EDA found no exact-byte duplicates; WAV contents were not rehashed in this step",
+  "seed_reproduction_passed": true
+}

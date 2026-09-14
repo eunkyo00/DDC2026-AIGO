@@ -1,0 +1,132 @@
+{
+  "cohort_calls": 27985,
+  "json_parsed": 27985,
+  "gender_mismatches": 0,
+  "segment_index_mismatches": 0,
+  "split_assignment_sha256": "04b5018778321f775a0bf95949a37636090d4df4e3710b16627dfee309408f06",
+  "stratification": {
+    "sklearn_train_test_split_used": false,
+    "seed": 42,
+    "algorithm": "gender-wise SHA256 seeded ranking",
+    "rounding": "len(gender_group)//5 for internal validation; remainders forbidden by v1 assertion",
+    "why_ratios_identical": "13100 and 14885 are exactly divisible by 5; quotas are 2620 and 2977",
+    "split_recreated": false
+  },
+  "ids": {
+    "_id": {
+      "total_rows": 27985,
+      "nonempty_rows": 27985,
+      "unique_ids": 27985,
+      "missing_rows": 0,
+      "duplicate_excess_rows": 0,
+      "duplicate_values": 0,
+      "train_unique_ids": 22388,
+      "internal_validation_unique_ids": 5597,
+      "internal_overlap": 0
+    },
+    "recordId": {
+      "total_rows": 27985,
+      "nonempty_rows": 27985,
+      "unique_ids": 27985,
+      "missing_rows": 0,
+      "duplicate_excess_rows": 0,
+      "duplicate_values": 0,
+      "train_unique_ids": 22388,
+      "internal_validation_unique_ids": 5597,
+      "internal_overlap": 0
+    },
+    "audioPath": {
+      "total_rows": 27985,
+      "nonempty_rows": 27985,
+      "unique_ids": 27985,
+      "missing_rows": 0,
+      "duplicate_excess_rows": 0,
+      "duplicate_values": 0,
+      "train_unique_ids": 22388,
+      "internal_validation_unique_ids": 5597,
+      "internal_overlap": 0
+    }
+  },
+  "schema": {
+    "$": {
+      "dict": 27985
+    },
+    "$._id": {
+      "str": 27985
+    },
+    "$.audioPath": {
+      "str": 27985
+    },
+    "$.recordId": {
+      "str": 27985
+    },
+    "$.status": {
+      "int": 27985
+    },
+    "$.startAt": {
+      "int": 27985
+    },
+    "$.endAt": {
+      "int": 27614,
+      "float": 371
+    },
+    "$.utterances": {
+      "list": 27985
+    },
+    "$.utterances[]": {
+      "dict": 851850
+    },
+    "$.utterances[].id": {
+      "str": 851850
+    },
+    "$.utterances[].startAt": {
+      "int": 851850
+    },
+    "$.utterances[].endAt": {
+      "int": 851850
+    },
+    "$.utterances[].text": {
+      "str": 851850
+    },
+    "$.utterances[].speaker": {
+      "int": 851850
+    },
+    "$.mediaType": {
+      "str": 27985
+    },
+    "$.gender": {
+      "str": 27985
+    },
+    "$.address": {
+      "str": 27985
+    },
+    "$.disasterLarge": {
+      "str": 27985
+    },
+    "$.disasterMedium": {
+      "str": 27985
+    },
+    "$.urgencyLevel": {
+      "str": 27985
+    },
+    "$.sentiment": {
+      "str": 27985
+    },
+    "$.symptom": {
+      "list": 27985
+    },
+    "$.symptom[]": {
+      "str": 54566
+    },
+    "$.triage": {
+      "str": 27985
+    }
+  },
+  "speaker_level_risk": "Call-level leakage는 검증 완료했지만 서로 다른 call_id에 동일 신고자가 반복 등장하는 speaker-level leakage 여부는 현재 메타데이터만으로 확인할 수 없다.",
+  "risk_status": "known unresolved risk",
+  "method": "All selected Training JSON reread directly; no quoted EDA uniqueness substitution",
+  "person_identifier_key_candidates": [
+    "$.utterances[].speaker"
+  ],
+  "person_identifier_assessment": "Only utterances[].speaker role field found; _id/recordId/audioPath are call/source identifiers without evidence of stable person linkage. utterances[].id identifies an utterance."
+}

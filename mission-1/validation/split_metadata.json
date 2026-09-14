@@ -1,0 +1,30 @@
+{
+  "created_utc": "2026-09-13T17:26:17.676742+00:00",
+  "python": "3.12.2 (v3.12.2:6abddd9f6a, Feb  6 2024, 17:02:06) [Clang 13.0.0 (clang-1300.0.29.30)]",
+  "seed": 42,
+  "algorithm": "gender-stratified SHA256 seeded rank v1; validation quota 1/5 per gender",
+  "expected_gender_counts": {
+    "M": 13100,
+    "F": 14885
+  },
+  "source_hashes": {
+    "calls.csv": "ae60d6339aa8ebdc9ef02d29a203e0cb5c25a73d77874922f3b38be7a0249f51",
+    "segments.csv": "8bf8c83c0190232e4500b4067bc28d2611b09dd227a7ce4dc9c3741e6dcce584",
+    "audio_headers.csv": "3c2311af5d8992d1b84df74b16a235b67bb2060106b6df4420b454189b50e4db",
+    "leakage.json": "31034a29adebf1df8c5619d97f62d6eea1cc32f89fa8094c8d9fbe4b0da9685b",
+    "inventory.json": "f0fc9ad6437607944a254392bf7db017598223eeba1d17e24c71d62dd5fad2d8",
+    "run_metadata.json": "7f1e81e51f94912ecdd3766d2d801b8fcb08152e2b521d3e96c37d38ea4bed9c"
+  },
+  "generator_sha256": "f4e8b692151fbf0d97f8a134bd27ebdf3fdc9a87dcb42b200d23124b22e43e87",
+  "output_hashes": {
+    "split_assignments.csv": "04b5018778321f775a0bf95949a37636090d4df4e3710b16627dfee309408f06",
+    "split_summary.json": "39423ca0b87bda00c01d7a878e112e1c5a257fed8845bfc92c8a77fb24b33138",
+    "validation_checks.json": "0cef5b776cc053ef2667cdd69f8a4570e501602320667bf575d17cdf8127be35",
+    "REPORT.md": "3e0576540ed85e81f9895f426e310ec207d90cfdd1f50039ec8ec3ab134903e2",
+    "manifests/calls.csv": "dc57d0f7bea6e06017ac3e27444a0ff5bb299e401ea787400e84cbdf7d072e23",
+    "manifests/train_calls.csv": "a4731d1cd2dc4a24b61feb359b466c160589c290661a60167c6d562a1a43f81c",
+    "manifests/val_calls.csv": "447a16e2861040ab412db902c903e60ac4a4bc6c8b659a537dbd323f133be947"
+  },
+  "frozen_policy": "v1 membership must be reused by all models. Verification never writes. Changed cohort requires a new explicitly reviewed version.",
+  "source_paths_note": "EDA paths configured via --eda-dir; WAV root from EDA run_metadata or --data-root; no official Validation members used"
+}

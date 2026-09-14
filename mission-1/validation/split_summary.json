@@ -1,0 +1,119 @@
+{
+  "dataset_version": "m1_internal_call_v1",
+  "source_split": "Training only",
+  "seed": 42,
+  "algorithm": "gender-stratified SHA256 seeded rank v1; validation quota 1/5 per gender",
+  "ratio": {
+    "train": 0.8,
+    "internal_validation": 0.2
+  },
+  "stratify": "gender",
+  "total_calls": 27985,
+  "statistics": {
+    "train": {
+      "calls": 22388,
+      "gender_counts": {
+        "M": 10480,
+        "F": 11908
+      },
+      "gender_ratios": {
+        "M": 0.4681079149544399,
+        "F": 0.5318920850455601
+      },
+      "reporter_segments": 354349,
+      "all_speaker_segments": 681604,
+      "segments_per_call": {
+        "mean": 15.82763087368233,
+        "median": 15.0,
+        "min": 1,
+        "max": 60
+      },
+      "total_reporter_duration_s": 749744.974,
+      "total_reporter_union_duration_s": 748515.822,
+      "duration_per_call_s": {
+        "mean": 33.48869814186171,
+        "median": 30.219,
+        "min": 0.872,
+        "max": 129.228
+      },
+      "duration_bins_counts": {
+        "<0.5s": 28480,
+        "0.5–1s": 90479,
+        "1–2s": 101284,
+        "2–4s": 84563,
+        ">=4s": 49543
+      },
+      "duration_bins_ratios": {
+        "<0.5s": 0.08037273986945075,
+        "0.5–1s": 0.2553386632952259,
+        "1–2s": 0.2858312003138149,
+        "2–4s": 0.23864325848245657,
+        ">=4s": 0.1398141380390519
+      }
+    },
+    "internal_validation": {
+      "calls": 5597,
+      "gender_counts": {
+        "F": 2977,
+        "M": 2620
+      },
+      "gender_ratios": {
+        "M": 0.4681079149544399,
+        "F": 0.5318920850455601
+      },
+      "reporter_segments": 88290,
+      "all_speaker_segments": 170246,
+      "segments_per_call": {
+        "mean": 15.774522065392174,
+        "median": 15,
+        "min": 3,
+        "max": 56
+      },
+      "total_reporter_duration_s": 187393.638,
+      "total_reporter_union_duration_s": 187089.394,
+      "duration_per_call_s": {
+        "mean": 33.48108593889584,
+        "median": 30.144,
+        "min": 2.791,
+        "max": 122.547
+      },
+      "duration_bins_counts": {
+        "<0.5s": 7029,
+        "0.5–1s": 22420,
+        "1–2s": 25197,
+        "2–4s": 21256,
+        ">=4s": 12388
+      },
+      "duration_bins_ratios": {
+        "<0.5s": 0.07961264016309888,
+        "0.5–1s": 0.25393589307962394,
+        "1–2s": 0.2853890587835542,
+        "2–4s": 0.24075206705176125,
+        ">=4s": 0.1403103409219617
+      }
+    }
+  },
+  "quality": {
+    "n_segments_standardized_mean_difference": -0.008706141255602352,
+    "total_duration_standardized_mean_difference": -0.0005037634483295699,
+    "max_duration_bin_difference_pp": 0.21088085693046765,
+    "gender_difference_pp": 0.0,
+    "review_thresholds": "Descriptive flag: |SMD| > 0.1 or max bin difference > 2 percentage points; never search seeds to improve this result",
+    "review_flag": false
+  },
+  "majority_baseline": {
+    "selected_from": "internal train counts only",
+    "class": "F",
+    "correct_calls": 2977,
+    "evaluated_calls": 5597,
+    "accuracy": 0.5318920850455601
+  },
+  "ready_for_step4_split": true,
+  "column_semantics": {
+    "call_id": "EDA file_ref = SHA256(NFC WAV stem)",
+    "n_segments": "reporter segments only (speaker=1)",
+    "total_duration": "reporter segment duration sum, seconds; overlaps counted as in EDA",
+    "reporter_union_duration": "EDA reporter interval union seconds; no audio aggregation performed",
+    "n_all_segments": "all speaker roles; each follows the same parent call partition"
+  }
+}
