@@ -65,6 +65,7 @@ python -m unittest discover -s mission-3/tests -v
 
 멘토링 지침처럼 threshold를 0.5로 고정하는 재실험에서는 각 단독 모델 명령에
 `--fixed-threshold`를 추가한다. 이때 `metrics.json`의 `fixed_threshold_macro_f1`만 비교한다.
+앙상블도 동일 원칙을 적용하며, `ensemble/run_ensemble.py`에 `--fixed-threshold --weight-a 0.5`를 함께 전달하면 가중치와 threshold 모두 탐색하지 않는다.
 
 기존 결과를 덮어쓰지 않는다. 재실험은 새로운 `--out-dir`를 지정한다.
 이 코드는 대화의 실험 절차를 재구성한 것으로 당시 노트북 자체는 아니다.

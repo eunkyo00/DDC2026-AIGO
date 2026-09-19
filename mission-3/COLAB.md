@@ -53,6 +53,12 @@ GPU 메모리 부족이면 batch를 줄이고 accumulation을 늘려 유효 batc
 !python mission-3/ensemble/run_ensemble.py --a /content/m3_runs/e3/dev_predictions.npz --b /content/m3_runs/e2/dev_predictions.npz --out-dir /content/m3_runs/e3_e2
 ```
 
+고정 0.5 평가에서는 가중치 탐색도 하지 않는다. 사전에 정한 동일 가중치 앙상블은 다음과 같이 실행한다.
+
+```bash
+!python mission-3/ensemble/run_ensemble.py --a /content/m3_fixed/e0/dev_predictions.npz --b /content/m3_fixed/e3/dev_predictions.npz --out-dir /content/m3_fixed/e0_e3_equal --fixed-threshold --weight-a 0.5
+```
+
 ## 5. 백업 및 재개
 
 런타임 삭제 시 `/content`가 사라진다. notebook(.ipynb), 원본 split, metrics,

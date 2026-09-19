@@ -42,6 +42,18 @@ class EvaluationTests(unittest.TestCase):
             self.assertEqual(metrics["fixed_threshold_macro_f1"], 1.)
             self.assertNotIn("tuned_macro_f1", metrics)
 
+    def test_equal_blend_is_aligned(self):
+        y = np.eye(9, dtype=int)
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            np.savez_compressed(tmp / "a.npz", file_names=np.asarray([f"{i}.json" for i in range(9)]),
+                                targets=np.asarray(TARGETS), y_true=y, probs=y * .8 + .1)
+            np.savez_compressed(tmp / "b.npz", file_names=np.asarray([f"{i}.json" for i in range(9)]),
+                                targets=np.asarray(TARGETS), y_true=y, probs=y * .6 + .2)
+            a, b = np.load(tmp / "a.npz", allow_pickle=False), np.load(tmp / "b.npz", allow_pickle=False)
+            ensemble.aligned(a, b)
+            self.assertEqual((.5 * a["probs"] + .5 * b["probs"]).shape, y.shape)
+
     def test_original_manifest_order_and_overlap_rejection(self):
         frame = pd.DataFrame([{ "file_name": f"{i}.json", "text": "sample",
                                **{target: 0 for target in TARGETS}} for i in range(3)])
