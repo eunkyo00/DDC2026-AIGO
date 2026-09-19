@@ -16,7 +16,38 @@ Train-only StandardScaler와 기존 LogisticRegression 설정으로 로컬 평�
 않는다. 검증된 export SHA256은
 `64cd8d608c5e7e18a0db86193f7b4b26fa08d689aa22e4dab6807b7360bd71c4`이다.
 
-## 초기 Mac MPS 구현 및 자원 평가 기록
+## 현재 사용하는 파일과 재현 방법
+
+| 경로 | 역할 |
+|---|---|
+| `colab/` | 실제 CUDA 추출 notebook·runner·session 및 Drive resume |
+| `evaluate_colab_export.py` | 실제 최종 평가에 사용한 로컬 export 검증·Scaler/LR 학습 |
+| `evaluation_requirements.txt` | GPU 없이 로컬 평가에 필요한 고정 패키지 |
+| `results/full_l4/` | 최종 metrics, Validation 예측, L4 benchmark와 추출 요약 |
+| `results/REPORT.md` | 최종 결과와 오류 겹침·실측 시간 |
+| `results/`의 smoke/benchmark JSON·CSV | 초기 Mac MPS 기록 |
+| `checkpoint_smoke.py` | 초기 생성 파형 진단 |
+| `verify_results.py` | 초기 Mac 결과용 검증기; 최종 `full_l4` 형식과 다름 |
+
+현재 Colab 실험의 재현은 [Colab README](colab/README.md)를 따른다. 다운로드한
+통합 embedding의 로컬 평가는 다음 명령을 사용한다. 아래의 Mac `--mode evaluate`에
+Colab NPZ를 직접 넣지 않는다.
+
+```bash
+python3 -m venv /path/to/local-eval-venv
+/path/to/local-eval-venv/bin/python -m pip install \
+  -r mission-1/ssl/wav2vec2_frozen/evaluation_requirements.txt
+/path/to/local-eval-venv/bin/python \
+  mission-1/ssl/wav2vec2_frozen/evaluate_colab_export.py \
+  --embeddings /path/to/wav2vec2_l4_full_embeddings.npz \
+  --output /path/to/new-evaluation-results
+```
+
+이 명령은 기존에 검증된 export SHA256을 확인한다. 새로운 추출 결과는 별도 무결성
+검토가 필요하다. 개별 오답 원인 분석과 새 WAV/JSON을 받는 최종 통합 추론 파이프라인은
+아직 완료하지 않았다.
+
+## 초기 Mac MPS 구현 기록 — 아래 명령은 최종 Colab 결과용이 아님
 
 고정된 Mission 1 call-level split에서 `speaker=1` 신고자 구간만 사용한다. 8kHz 파형을
 `scipy.signal.resample_poly(up=2, down=1, Kaiser beta=5.0)`로 실제 16kHz 파형으로
@@ -82,7 +113,7 @@ forward하고 hidden frame 수로 가중 평균한다. 전체 442,639개 중 해
 chunk 경계에서는 encoder 문맥이 끊기므로 full run 결과가 생길 경우 알려진 근사 오차로
 해석해야 한다. 16kHz에서 400 sample보다 짧은 입력은 forward가 가능하도록 zero-pad한다.
 
-현재 자원 판단과 실행 결과는 [results/REPORT.md](results/REPORT.md)에 기록한다.
+최종 CUDA 결과는 [results/REPORT.md](results/REPORT.md)에 기록한다.
 
 ## Mac 터미널에서 독립 실행
 
