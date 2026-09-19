@@ -1,240 +1,147 @@
-# Mission 1 — 신고자 음성 성별 분류
+# Mission 1 · 신고자 음성 성별 분류
 
-## 1. Mission 1 한눈에 보기
+통화의 신고자 음성을 사용해 **통화별 Male / Female을 예측**한다.
+입력은 WAV와 발화 구간이 기록된 JSON이며, 평가는 통화 단위 Accuracy로 비교한다.
 
-**목표는 신고자 음성을 `male` / `female`로 분류하는 것**이다. 입력은 WAV + JSON, 평가는 **Accuracy(통화 중 정답을 맞힌 비율)**, 최종 출력은 **Call-level 성별 예측 CSV**다. call은 통화 1건, segment는 통화 안의 발화 구간이다.
+> **현재 상태 · 2026-09-19**
+>
+> Frozen Wav2Vec2 baseline과 기본 오류 비교까지 완료했다.
+>
+> 최고 Accuracy는 **97.248526%**다. 개별 오답 원인 분석과 최종 통합 추론은 다음 단계다.
+
+[실험 결과](#실험-결과) · [진행 상황](#진행-상황) · [데이터와-평가-기준](#데이터와-평가-기준) · [폴더와-실행-안내](#폴더와-실행-안내)
+
+## 실험 결과
+
+모든 결과는 **같은 고정 Internal Validation 5,597통화**에서 측정했다.
+Male / Female Accuracy는 각 실제 성별에 속한 통화의 정답 비율이다.
+
+| 모델 | Overall | Male | Female |
+|---|---:|---:|---:|
+| Majority · Female 고정 | 53.189209% | 0.000000% | 100.000000% |
+| F0 + Acoustic → Logistic Regression | 91.209577% | 89.961832% | 92.307692% |
+| MFCC → RBF SVM | 95.068787% | 94.809160% | 95.297279% |
+| **Frozen Wav2Vec2 → Logistic Regression** | **97.248526%** | **96.755725%** | **97.682230%** |
+
+Wav2Vec2는 MFCC보다 **2.179739%p** 높았으며, 오답은 **276개 → 154개**로 줄었다.
+전체 L4 embedding 추출·검사는 **11.19시간**, 로컬 LogisticRegression 학습은 약 **3초** 걸렸다.
+추출 시간은 Drive 읽기·저장·검사를 포함하며 새 통화 한 건의 추론 지연시간을 뜻하지 않는다.
+
+### MFCC와 Wav2Vec2의 오류 비교
+
+| 결과 | 통화 수 |
+|---|---:|
+| 둘 다 맞음 | 5,261 |
+| Wav2Vec2만 맞음 | 182 |
+| MFCC만 맞음 | 60 |
+| 둘 다 틀림 | 94 |
+
+성별별 평가, confusion matrix와 call별 오류 겹침을 확인했다.
+개별 오답을 듣고 원인을 분류하는 분석은 아직 진행하지 않았다.
+→ [최종 REPORT](ssl/wav2vec2_frozen/results/REPORT.md) · [Metrics](ssl/wav2vec2_frozen/results/full_l4/metrics.json) · [Validation 예측](ssl/wav2vec2_frozen/results/full_l4/val_predictions.csv)
+
+## 진행 상황
+
+단순한 음향 특징부터 시작해 사전학습 표현이 추가로 도움이 되는지 비교했다.
 
 ```text
-WAV + JSON → 신고자 발화 추출 → 음성 특징 / 음성 모델
-    → 발화 예측·정보 통합 또는 Call 단위 예측 → Call-level male / female → CSV
+데이터 구조 확인 / EDA → Call-level Validation 고정
+        ↓
+Majority → F0 + Acoustic + LR → MFCC + RBF SVM
+        ↓
+Frozen Wav2Vec2 + LR → 성능·성별별 평가·오류 겹침 분석
+        ↓
+개별 오답 원인 분석 → 필요한 개선 → 최종 통합 추론
 ```
 
-- **WAV**: 실제 통화 음성.
-- **JSON**: 신고자가 언제 말했는지 찾는 정보. `speaker=1`은 신고자, `speaker=0`은 상담원이다.
-- **`gender`**: 학습·평가용 정답(`M`/`F`)이며 모델 입력으로 사용하지 않는다.
+| 상태 | 범위 |
+|---|---|
+| 완료 | EDA, fixed split, 네 baseline 평가, 성별별 평가·confusion matrix·오류 겹침 |
+| 다음 단계 | 개별 오답의 원인 분석, 필요 시 다른 aggregation·모델 개선 검토 |
+| 미구현 | 새 WAV/JSON 입력부터 최종 예측 CSV까지 연결하는 통합 추론 진입점 |
 
-## 2. 데이터와 전처리
+여러 발화의 **특징 집계(aggregation)는 각 baseline에 이미 적용**했다.
+다른 집계 방식의 비교, HuBERT, fine-tuning, augmentation, ensemble, hybrid,
+threshold tuning, hyperparameter search는 이번 Wav2Vec2 실험에 포함하지 않았다.
+별도 경량 모델 작업도 위 완료 결과에 포함하지 않는다.
 
-### 데이터 구조
+## 데이터와 평가 기준
 
-| 항목 | Training | 공식 Validation |
+### 사용 데이터
+
+| 항목 | Training 원본 | 공식 Validation 원본 |
 |---|---:|---:|
 | WAV | 27,987 | 3,640 |
 | JSON | 29,200 | 3,640 |
-| 정상 JSON + WAV 매칭 Calls | **27,985** | **3,640** |
-| Male (정상 매칭 기준) | 13,100 (46.81%) | 1,681 (46.18%) |
-| Female (정상 매칭 기준) | 14,885 (53.19%) | 1,959 (53.82%) |
+| 정상 JSON + WAV 매칭 통화 | **27,985** | **3,640** |
+| Male / Female | 13,100 / 14,885 | 1,681 / 1,959 |
 
-확인한 WAV는 모두 **8kHz(초당 8,000샘플), mono(1채널), PCM 16-bit**다. Training의 WAV 누락 **1,213건**, JSON 읽기/구조 실패 **2건**은 제외했으며 공식 Validation에서는 두 항목 모두 0건이다. JSON 수를 학습 가능한 통화 수로 사용하지 않는다.
+확인한 WAV는 **8kHz · mono · PCM 16-bit**다. Training에서 WAV 누락 1,213건과
+JSON 읽기·구조 실패 2건을 제외했다. 공식 Validation에는 이 두 오류가 없었다.
 
-### 신고자 음성 추출
+WAV와 JSON을 연결한 뒤 `utterances[]`의 `speaker=1` 구간을 사용한다.
+`speaker=0`은 상담원이며 `startAt`·`endAt`은 밀리초에서 초로 변환한다.
+정답 `gender`는 학습·평가에만 사용한다.
 
-WAV와 JSON을 파일명으로 연결하고, JSON의 `utterances[]`에서 신고자 구간을 골라 음성을 자른다. 발화별 `startAt`·`endAt`은 밀리초 단위이므로 초로 변환한다.
-
-```text
-전체 WAV + JSON의 startAt / endAt / speaker
-    → speaker=1인 신고자 발화 구간 추출
-```
-
-### EDA에서 확인한 것
-
-EDA(데이터 구조·품질 탐색)는 성별 분포, 발화 수·길이, sample rate/channel, 기본 음향 품질, 신고자·상담원 구간 겹침, F0 추정 이상을 살폈다. 파일·라벨·시간 경계·WAV 헤더는 전수 확인하고 음향은 **80통화 표본**을 분석했다. 세부 결과와 검사 한계는 [eda/REPORT.md](eda/REPORT.md)에 있다.
-
-## 3. 실제 진행 단계 (2026-09-19 기준)
+### 고정 평가 분할
 
 ```text
-데이터 구조 확인 / EDA → Call-level Validation 고정 [완료]
-        ↓
-Majority [완료]
-        ↓
-F0 + Acoustic → Logistic Regression [완료]
-        ↓
-MFCC → RBF SVM [완료]
-        ↓
-Frozen Wav2Vec2 → StandardScaler + Logistic Regression [완료]
-        ↓
-성능·성별별 평가 / confusion matrix / MFCC 오류 겹침 분석 [완료]
-        ↓
-개별 오답 원인 분석 / 필요 시 Aggregation 개선 [미진행]
-        ↓
-필요한 성능 개선 → Final Inference Pipeline [미진행]
+정상 Training 27,985통화 · caller 발화 442,639개
+        ├─ Train                 22,388통화
+        └─ Internal Validation    5,597통화
 ```
 
-**왜 이 순서인가?** 처음부터 복잡한 모델을 쓰기보다 단순한 방법으로 어디까지 가능한지 확인한다. 더 많은 음성 정보를 사용하는 방법을 차례로 비교해 **어떤 정보와 모델이 성능 향상에 기여하는지 같은 평가 조건에서 근거를 남긴다.** 오류 분석은 baseline부터 시작해 모델 비교 후에도 반복하며, 아래의 비교 설계와 실제 측정 결과는 구분한다.
+- seed 42, 남녀 비율을 유지하는 80:20 분할
+- 같은 통화의 모든 발화는 같은 partition에 배정
+- 모든 모델이 동일한 [split_assignments.csv](validation/split_assignments.csv) 사용
+- StandardScaler 등 학습이 필요한 전처리는 Train에만 fit
 
-HuBERT는 실행하지 않았다. 여러 신고자 발화의 **특징 집계(aggregation)는 각 baseline에 이미 포함**된다. 오류 분석 이후 다른 집계 방식이나 개별 발화 예측 통합을 비교하는 실험은 아직 하지 않았다. 별도 경량 모델 작업은 아래 완료 결과에 포함하지 않는다.
+**공식 Validation 3,640통화는 위 Internal Validation과 별개**다.
+이 README의 성능표는 공식 Validation 평가 결과가 아니다.
+→ [분할 검증 REPORT](validation/REPORT.md)
 
-### Call-level Validation
+## 모델별 방법
 
-한 통화의 여러 발화를 양쪽에 나누면 같은 목소리·녹음 환경을 학습과 평가에서 함께 접하는 **leakage(데이터 누수)**가 생길 수 있다. 이를 막기 위해 통화 전체를 한쪽에 배정했다.
+| 모델 | 음성 표현과 통화별 집계 | 선택 이유 |
+|---|---|---|
+| Majority | Train의 다수 성별인 Female로 고정 | 음성 분석 없이 얻는 최소 기준 |
+| F0 + Acoustic | 높낮이·음량·유성음 비율·길이 등의 평균·중앙값 → LR | 기본 음향 정보의 분류 효과 확인 |
+| MFCC | segment별 계수 mean/std → call별 mean/std와 발화 수·길이, 54차원 → RBF SVM | 음색과 주파수 구조의 추가 효과 확인 |
+| Frozen Wav2Vec2 | 마지막 hidden state 시간 평균 → segment 동일 가중 call 평균, 768차원 → LR | 사전학습 음성 표현의 추가 효과 확인 |
 
-```text
-X  Call A segment 1 → Train
-   Call A segment 2 → Validation
+MFCC는 **13계수 · 26 mel bands · 50–3800Hz**, RBF SVM은 `C=1`, `gamma="scale"`을 사용했다.
+Wav2Vec2는 고정 revision의 `facebook/wav2vec2-base`를 **FP32·Frozen**으로 사용하고
+8→16kHz로 resampling했다. 전체 embedding은 동일한 L4 CUDA 환경에서 생성했으며,
+검증된 embedding으로 로컬에서 Train-only StandardScaler와 기존 설정의 LR을 학습했다.
 
-O  Call A 전체 → Train
-   Call B 전체 → Validation
-```
+모델 간에는 표현뿐 아니라 분류기도 달라지므로 정확도 향상 전체를 특정 특징 하나의 효과로
+단정하지 않는다. 파라미터·전처리·재현 명령은 아래 각 모델 문서에 기록했다.
 
-- **정상 Training 27,985 calls → Train 22,388 / Internal Validation 5,597**.
-- **seed 42**, **gender-stratified**: 남녀 각각 80:20으로 나눠 성별 비율을 유지한다.
-- **모든 모델은 동일한 [고정 split](validation/split_assignments.csv)을 사용**한다. 전처리에 필요한 값도 Train에서만 학습한다.
+## 해석할 때 주의할 점
 
-공식 Validation **3,640건**은 Training에서 나눈 Internal Validation과 별개이며, 이 split 생성에 사용하지 않았다. 배정·검증의 세부 내용은 [validation/REPORT.md](validation/REPORT.md)를 따른다.
-
-## 4. 모델별 실험 방법과 결과
-
-| 방법 | 음성에서 사용하는 정보 | 분류 방법 | 목적 |
-|---|---|---|---|
-| Majority | 없음 | Female 고정 | 최소 기준 성능 |
-| F0 + Acoustic | 높낮이 + 기본 음향 특징 | Logistic Regression | 단순한 음향 정보의 효과 확인 |
-| MFCC | 음색 + 주파수 구조 | RBF SVM | 더 넓은 전통적 음성 특징의 추가 효과 확인 |
-| Frozen Wav2Vec2 | 사전학습된 음성 표현 | StandardScaler + Logistic Regression | 사전학습 표현의 추가 효과 확인 |
-
-**확인된 실험 결과**는 먼저 아래 표에서 비교할 수 있다. 모두 **같은 Internal Validation 5,597통화의 call 단위 Accuracy**이며, 검증된 수치가 있는 방법만 기록한다.
-
-| Method | Classifier | Accuracy |
-|---|---|---:|
-| Majority | Female 고정 | 53.189209% |
-| F0 + Acoustic | Logistic Regression | 91.209577% |
-| MFCC | RBF SVM | **95.068787%** |
-| Frozen Wav2Vec2 | Logistic Regression | **97.248526%** |
-
-동일한 고정 Internal Validation에서 Frozen Wav2Vec2가 MFCC보다 **2.179739%p 높은 Accuracy**를 기록했다. 27,985통화의 embedding을 L4 CUDA에서 모두 추출하고, 로컬에서 Train 22,388통화로만 분류기를 학습했다.
-
-### Majority
-
-Train에서 더 많은 성별인 Female로 모든 call을 예측한다. 음성이나 모델 학습 없이 얻는 값으로, 이후 모델의 최소 비교 기준이다.
-
-### F0 + Acoustic + Logistic Regression
-
-```text
-신고자 음성 → F0 + Acoustic Features → Call-level 집계
-    → Logistic Regression → male / female
-```
-
-- **F0**: 목소리 높낮이와 관련된 기본 주파수.
-- **Acoustic Features**: RMS(신호 크기), voiced ratio(유성음 판정 비율), zero-crossing rate(0 교차 빈도), spectral centroid(주파수 에너지 중심), duration(발화 길이).
-- **Logistic Regression**: 숫자 특징으로 남/여를 분류하는 간단한 모델.
-
-**단순한 음향 정보만으로 얼마나 구분할 수 있는지 확인하는 baseline(비교 기준)**이다. 발화 특징을 통화별 평균·중앙값으로 합치고 발화 수·길이 합 등도 사용했다.
-
-| Metric | Result |
-|---|---:|
-| Male Accuracy | 89.961832% |
-| Female Accuracy | 92.307692% |
-| Majority 대비 | +38.020368%p |
-
-Male/Female Accuracy는 각 실제 성별 통화 중 정답 비율이며, %p는 퍼센트포인트다. **이 결과는 F0만이 아니라 F0 + Acoustic Features + Call-level aggregation의 결과**다.
-
-### MFCC + RBF SVM
-
-**MFCC**는 음색과 주파수 에너지 구조를 숫자로 표현하는 전통적인 음성 특징이다. **RBF SVM**은 특징 간 비선형적인 경계도 학습하는 분류기다. F0·기본 음향 특징보다 더 넓은 음색·주파수 정보가 추가 개선을 주는지 확인하기 위해 사용했다.
-
-```text
-신고자 음성 → MFCC 추출 → Segment-level mean/std 요약
-    → Call-level 집계 → RBF SVM → male / female
-```
-
-각 segment에서 MFCC 계수별 mean/std(평균·표준편차)를 계산한 뒤, 통화 안에서 다시 mean/std로 집계하고 segment 수와 총 발화시간을 더했다.
-
-| 핵심 설정 | 값 |
+| 항목 | 확인한 내용 |
 |---|---|
-| MFCC | 13개 계수, 26개 mel bands, 50–3800Hz |
-| 분석 구간 | 25ms Hamming window, 10ms hop, FFT 256 |
-| 전처리·특징 | pre-emphasis 0.97, 최종 call-level **54차원** |
-| RBF SVM | `C=1`, `gamma="scale"`, `class_weight=None`, `probability=False` |
+| 사람 단위 분리 | person ID / phone hash가 없어 동일 신고자가 Train과 Validation에 있는지 확인할 수 없다. 통화 단위 분리가 사람 단위 분리를 보장하지 않는다. |
+| 신고자·상담원 겹침 | 정상 파싱 통화의 96.41%에서 라벨 시간 구간이 겹쳤다. 이 사실만으로 실제 동시 발성을 확정할 수 없다. |
+| F0 이상 | 약 660Hz 톤이 F0 약 329Hz로 추정된 사례가 있다. 추정 F0를 항상 사람의 실제 높낮이로 볼 수 없다. |
+| EDA 범위 | 파일·라벨·시간 경계·WAV 헤더는 전수 확인했고, 음향 품질 분석은 80통화 표본을 사용했다. |
 
-동일 fixed split을 사용했으며 StandardScaler는 Train 22,388통화에만 fit했다. 특징 추출은 27,985통화·442,639 segment 모두 성공했고 NaN/inf는 0건이었다.
+다음 상세 오류 분석에서는 짧은 발화, 무음·clipping, 라벨 문제와 발화 겹침을 확인한다.
+개선 실험은 그 결과에 근거해 결정한다.
 
-| 성별별 결과 | Accuracy | F0 대비 |
-|---|---:|---:|
-| Male | 94.809160% | +4.847328%p |
-| Female | 95.297279% | +2.989587%p |
+## 폴더와 실행 안내
 
-기본 음향 특징을 쓴 F0 baseline도 높은 정확도를 보였고, MFCC + RBF SVM은 이를 더 높였다. 이는 **음색과 더 넓은 주파수 구조가 추가 정보를 제공할 가능성**을 보여주며 남성 쪽 개선폭이 더 컸다. 다만 **특징과 분류기를 동시에 변경했으므로 향상 전체가 MFCC 자체의 효과라고 단정할 수 없다.** 혼동행렬·길이별 결과·재현 설정은 [MFCC REPORT](baseline/mfcc_svm/results/REPORT.md)에 있다.
+| 경로 | 역할 | 문서 |
+|---|---|---|
+| `eda/` | 데이터 구조·품질 확인 | [README](eda/README.md) · [REPORT](eda/REPORT.md) |
+| `validation/` | fixed split과 분할 검증 | [README](validation/README.md) · [REPORT](validation/REPORT.md) |
+| `validation/sanity/` | 추가 분할 점검 | [REPORT](validation/sanity/results/REPORT.md) |
+| `baseline/f0_lr/` | F0 + Acoustic + LR | [README](baseline/f0_lr/README.md) · [REPORT](baseline/f0_lr/results/REPORT.md) |
+| `baseline/mfcc_svm/` | MFCC + RBF SVM | [README](baseline/mfcc_svm/README.md) · [REPORT](baseline/mfcc_svm/results/REPORT.md) |
+| `ssl/wav2vec2_frozen/` | Frozen Wav2Vec2 구현·로컬 평가 | [README](ssl/wav2vec2_frozen/README.md) · [REPORT](ssl/wav2vec2_frozen/results/REPORT.md) |
+| `ssl/wav2vec2_frozen/colab/` | CUDA 추출 notebook·runner | [Colab 실행 안내](ssl/wav2vec2_frozen/colab/README.md) |
+| `ssl/wav2vec2_frozen/results/full_l4/` | 최종 L4 추출 요약·metrics·Validation 예측 | [Metrics](ssl/wav2vec2_frozen/results/full_l4/metrics.json) |
 
-### Frozen Wav2Vec2 + Logistic Regression
-
-```text
-Audio → Frozen Pretrained Encoder → Speech Embedding → Classifier → male / female
-```
-
-`facebook/wav2vec2-base`의 고정 revision을 FP32·Frozen으로 사용했다. 8→16kHz resampling, 마지막 hidden state 시간 평균, segment 동일 가중 call 평균으로 768차원 embedding을 만들었다. Validation 5,597통화에서 Male **96.755725%**, Female **97.682230%**였다. MFCC와 공통 오답은 94통화이며, 두 모델의 오답 차이는 [결과 보고서](ssl/wav2vec2_frozen/results/REPORT.md)에 기록했다. 원본 WAV와 embedding cache는 저장소에 포함하지 않는다.
-
-## 5. 결과 이후 분석과 개선
-
-### Error Analysis
-
-성별별 Accuracy, confusion matrix와 MFCC/Wav2Vec2의 call별 오류 겹침 비교는 완료했다. Wav2Vec2 오답은 154개이며 MFCC와 공통 오답은 94개다. MFCC 오답을 Wav2Vec2가 맞힌 경우는 182개, 반대는 60개다.
-
-개별 오답 음성을 듣고 **짧은 발화, silence / clipping, F0 이상, 신고자·상담원 겹침, 라벨 문제**로 원인을 분류하는 상세 분석은 아직 진행하지 않았다. 이 분석으로 데이터 문제와 모델의 한계를 구분할 예정이다.
-
-### 여러 발화 활용
-
-현재 F0는 발화 특징의 평균·중앙값 등을, MFCC는 발화별 mean/std를 통화 단위로 집계한다. Wav2Vec2는 segment embedding의 동일 가중 평균을 사용한다. 따라서 여러 발화를 사용하는 단계는 이미 구현되어 있다.
-
-```text
-segment 1 ─┐
-segment 2 ─┼→ Call-level aggregation(통합) → 최종 성별
-segment 3 ─┘
-```
-
-발화별 확률 평균, 다수결, 길이·확신도 가중 등 다른 집계 방식의 비교는 후속 후보이며 미진행이다. 현재 결과에 이 방법들을 적용했다고 해석하면 안 된다.
-
-### 필요한 경우 성능 개선
-
-현재 Frozen Wav2Vec2 실험에는 fine-tuning, hybrid, augmentation, threshold tuning, ensemble, hyperparameter search를 적용하지 않았다. 추가 개선은 상세 오류 분석과 실행 비용을 확인한 뒤 별도 실험으로 결정한다.
-
-## 6. 최종 Inference Pipeline — 미구현
-
-```text
-WAV + JSON
-    ↓
-JSON parsing → 신고자 segment 추출
-    ↓
-audio preprocessing → 모델 추론
-    ↓
-여러 발화 결과 통합
-    ↓
-Call-level male / female → CSV
-```
-
-최종 목표는 `inference.py` 같은 **하나의 실행 진입점에서 입력부터 CSV 생성까지 자동화**하는 것이다. 파일명은 설계 예시이며, 특징을 먼저 집계하는 모델은 해당 순서를 모델 구조에 맞춘다. JSON 읽기, 음성 전처리, 예측은 학습 때 정한 방식과 일치시킨다.
-
-현재 코드는 고정된 데이터의 특징 추출·분류기 학습·Validation 평가를 위한 실험 파이프라인이다. 임의의 새 WAV/JSON을 입력받는 배포용 통합 추론 진입점이 완성된 상태는 아니다.
-
-### 저장소 폴더 안내
-
-| 경로 | 역할과 상태 |
-|---|---|
-| `eda/` | 데이터 구조·품질 확인, 완료 |
-| `validation/` | 고정 split과 분할 검증, 완료 |
-| `baseline/f0_lr/` | F0 + Acoustic baseline, 완료 |
-| `baseline/mfcc_svm/` | MFCC + RBF SVM baseline, 완료 |
-| `ssl/wav2vec2_frozen/colab/` | CUDA embedding 추출용 notebook·runner |
-| `ssl/wav2vec2_frozen/results/full_l4/` | 최종 L4 추출 요약·로컬 평가 metrics·Validation 예측 |
-| `ssl/wav2vec2_frozen/results/`의 smoke·benchmark 파일 | 초기 Mac 진단 기록; 최종 정확도는 `full_l4/` 참고 |
-
-폴더 이름과 코드 경로는 재현 명령을 보존하기 위해 유지한다. raw WAV·model weight·embedding cache는 GitHub에 포함하지 않는다.
-
-## 7. 주요 데이터 리스크 및 상세 문서
-
-다음은 **성능 해석에 중요한 known risks(알려진 위험)**다. MFCC의 Accuracy가 높아져도 이 위험들이 해결된 것은 아니다.
-
-| 리스크 | 확인한 사실과 의미 |
-|---|---|
-| Caller / Operator overlap | 정상 파싱 통화의 **96.41%**에서 신고자·상담원 라벨 시간 구간이 겹쳤다. 신고자 segment에 상담원 음성이 섞일 수 있지만, 라벨 겹침만으로 실제 동시 발성을 확정하지 않는다. |
-| F0 / Tone | **약 660Hz 톤이 F0 약 329Hz로 추정**된 진단 사례가 있다. 추정 F0를 항상 사람 목소리의 실제 높낮이로 볼 수 없으며, 이 사례를 전체 톤 비율로 일반화하지 않는다. |
-| Speaker-level leakage | 동일 신고자를 연결할 person ID / phone hash가 없어 같은 사람이 Train과 Validation에 포함됐는지 확인할 수 없다. 통화 단위 분리가 사람 단위 분리까지 보장하지 않는다. |
-
-세부 설정, 재현 명령과 실험 로그는 아래 문서에서 확인한다.
-
-| 내용 | 문서 |
-|---|---|
-| 데이터 / EDA | [README](eda/README.md), [REPORT](eda/REPORT.md) |
-| Validation | [README](validation/README.md), [REPORT](validation/REPORT.md) |
-| Validation sanity | [REPORT](validation/sanity/results/REPORT.md) |
-| F0 baseline | [README](baseline/f0_lr/README.md), [REPORT](baseline/f0_lr/results/REPORT.md) |
-| MFCC baseline | [README](baseline/mfcc_svm/README.md), [REPORT](baseline/mfcc_svm/results/REPORT.md) |
-| Frozen Wav2Vec2 | [README](ssl/wav2vec2_frozen/README.md), [REPORT](ssl/wav2vec2_frozen/results/REPORT.md) |
+Wav2Vec2 `results/` 바로 아래의 smoke·benchmark 파일은 **초기 Mac 진단 기록**이며,
+최종 결과는 **`results/full_l4/`**를 참고한다. 원본 WAV, 모델 weight, embedding cache는
+GitHub에 포함하지 않는다.
