@@ -104,4 +104,33 @@ nohup caffeinate -ims /private/tmp/ddc-m1-eda-venv/bin/python -u \
   --manifest-path mission-1/validation/manifests/calls.csv \
   --segments-path mission-1/eda/eda_outputs/segments.csv \
   --cache-dir mission-1/ssl/wav2vec2_frozen/cache \
-  --results-dir mission-1/ssl/wav2vec2_
+  --results-dir mission-1/ssl/wav2vec2_frozen/results \
+  --progress-every 10 \
+  >> mission-1/ssl/wav2vec2_frozen/cache/logs/full_extraction.log 2>&1 < /dev/null &
+echo $! > mission-1/ssl/wav2vec2_frozen/cache/extraction.pid
+```
+
+진행 상태와 로그:
+
+```bash
+/private/tmp/ddc-m1-eda-venv/bin/python \
+  mission-1/ssl/wav2vec2_frozen/run_wav2vec2_frozen.py --mode status
+tail -F mission-1/ssl/wav2vec2_frozen/cache/logs/full_extraction.log
+```
+
+`completed_calls=27985`, `failed_calls=0`을 확인한 후 classifier와 Validation 평가를
+별도로 실행한다.
+
+```bash
+/private/tmp/ddc-m1-eda-venv/bin/python -u \
+  mission-1/ssl/wav2vec2_frozen/run_wav2vec2_frozen.py \
+  --mode evaluate \
+  --split-path mission-1/validation/split_assignments.csv \
+  --manifest-path mission-1/validation/manifests/calls.csv \
+  --segments-path mission-1/eda/eda_outputs/segments.csv \
+  --cache-dir mission-1/ssl/wav2vec2_frozen/cache \
+  --results-dir mission-1/ssl/wav2vec2_frozen/results \
+  --mfcc-predictions mission-1/baseline/mfcc_svm/results/val_predictions.csv
+/private/tmp/ddc-m1-eda-venv/bin/python \
+  mission-1/ssl/wav2vec2_frozen/verify_results.py
+```
