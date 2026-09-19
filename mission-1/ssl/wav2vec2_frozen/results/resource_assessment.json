@@ -1,0 +1,40 @@
+{
+  "status": "stopped_before_dataset_smoke_and_full_extraction",
+  "reason": "The original WAV volume /Volumes/STORYLiNK is not mounted and no alternate local copy was found.",
+  "dataset_index_validation": {
+    "fixed_split_sha256": "04b5018778321f775a0bf95949a37636090d4df4e3710b16627dfee309408f06",
+    "calls": 27985,
+    "train_calls": 22388,
+    "internal_validation_calls": 5597,
+    "caller_segments": 442639,
+    "caller_audio_seconds": 937138.612,
+    "call_leakage": 0
+  },
+  "checkpoint_diagnostic": {
+    "scope": "generated waveforms only; not a real-data smoke test",
+    "checkpoint": "facebook/wav2vec2-base",
+    "revision": "0b5b8e868dd84f03fd87d01f9c4ff0f080fecfe8",
+    "device": "mps",
+    "total_encoder_parameters": 94371712,
+    "trainable_encoder_parameters": 0,
+    "embedding_dimension": 768,
+    "elapsed_seconds_for_0.02s_1s_16s_cases": 3.1789682499947958,
+    "peak_rss_bytes": 406323200,
+    "mps_driver_allocated_bytes": 1141522432,
+    "all_embeddings_finite": true,
+    "frozen_parameter_versions_unchanged": true
+  },
+  "cache": {
+    "call_embedding_bytes": 85969920,
+    "call_embedding_mib": 81.9873046875,
+    "segment_embeddings_persisted": false,
+    "git_ignored_by": "mission-1/.gitignore cache/"
+  },
+  "runtime_decision": {
+    "full_runtime_limit_hours": 12.0,
+    "dataset_benchmark_completed": false,
+    "full_extraction_started": false,
+    "accuracy_available": false,
+    "decision": "Do not start full extraction until the original WAV volume is mounted and the real-data smoke and representative benchmark pass."
+  }
+}

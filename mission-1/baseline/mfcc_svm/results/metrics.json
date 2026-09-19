@@ -1,0 +1,314 @@
+{
+  "dataset": {
+    "branch": "mission1/eunkyo",
+    "split_sha256": "04b5018778321f775a0bf95949a37636090d4df4e3710b16627dfee309408f06",
+    "seed": 42,
+    "train_calls": 22388,
+    "internal_validation_calls": 5597
+  },
+  "mfcc": {
+    "library": "librosa mel filter bank + scipy DCT-II",
+    "sample_rate": 8000,
+    "n_mfcc": 13,
+    "n_mels": 26,
+    "n_fft": 256,
+    "hop_length": 80,
+    "win_length": 200,
+    "frequency_range_hz": [
+      50.0,
+      3800.0
+    ],
+    "window": "hamming",
+    "pre_emphasis": 0.97,
+    "center": false,
+    "mel_scale": "Slaney",
+    "mel_filter_normalization": "slaney area",
+    "dct": "type-II, ortho",
+    "waveform_normalization": null,
+    "cepstral_mean_variance_normalization": null
+  },
+  "features": {
+    "dimension": 54,
+    "names": [
+      "mfcc_01_temporal_mean_segment_mean",
+      "mfcc_01_temporal_mean_segment_std",
+      "mfcc_01_temporal_std_segment_mean",
+      "mfcc_01_temporal_std_segment_std",
+      "mfcc_02_temporal_mean_segment_mean",
+      "mfcc_02_temporal_mean_segment_std",
+      "mfcc_02_temporal_std_segment_mean",
+      "mfcc_02_temporal_std_segment_std",
+      "mfcc_03_temporal_mean_segment_mean",
+      "mfcc_03_temporal_mean_segment_std",
+      "mfcc_03_temporal_std_segment_mean",
+      "mfcc_03_temporal_std_segment_std",
+      "mfcc_04_temporal_mean_segment_mean",
+      "mfcc_04_temporal_mean_segment_std",
+      "mfcc_04_temporal_std_segment_mean",
+      "mfcc_04_temporal_std_segment_std",
+      "mfcc_05_temporal_mean_segment_mean",
+      "mfcc_05_temporal_mean_segment_std",
+      "mfcc_05_temporal_std_segment_mean",
+      "mfcc_05_temporal_std_segment_std",
+      "mfcc_06_temporal_mean_segment_mean",
+      "mfcc_06_temporal_mean_segment_std",
+      "mfcc_06_temporal_std_segment_mean",
+      "mfcc_06_temporal_std_segment_std",
+      "mfcc_07_temporal_mean_segment_mean",
+      "mfcc_07_temporal_mean_segment_std",
+      "mfcc_07_temporal_std_segment_mean",
+      "mfcc_07_temporal_std_segment_std",
+      "mfcc_08_temporal_mean_segment_mean",
+      "mfcc_08_temporal_mean_segment_std",
+      "mfcc_08_temporal_std_segment_mean",
+      "mfcc_08_temporal_std_segment_std",
+      "mfcc_09_temporal_mean_segment_mean",
+      "mfcc_09_temporal_mean_segment_std",
+      "mfcc_09_temporal_std_segment_mean",
+      "mfcc_09_temporal_std_segment_std",
+      "mfcc_10_temporal_mean_segment_mean",
+      "mfcc_10_temporal_mean_segment_std",
+      "mfcc_10_temporal_std_segment_mean",
+      "mfcc_10_temporal_std_segment_std",
+      "mfcc_11_temporal_mean_segment_mean",
+      "mfcc_11_temporal_mean_segment_std",
+      "mfcc_11_temporal_std_segment_mean",
+      "mfcc_11_temporal_std_segment_std",
+      "mfcc_12_temporal_mean_segment_mean",
+      "mfcc_12_temporal_mean_segment_std",
+      "mfcc_12_temporal_std_segment_mean",
+      "mfcc_12_temporal_std_segment_std",
+      "mfcc_13_temporal_mean_segment_mean",
+      "mfcc_13_temporal_mean_segment_std",
+      "mfcc_13_temporal_std_segment_mean",
+      "mfcc_13_temporal_std_segment_std",
+      "n_segments",
+      "total_duration_s"
+    ],
+    "segment_summary": "per-coefficient temporal mean and std",
+    "call_aggregation": "segment-feature mean and std, plus n_segments and total_duration_s"
+  },
+  "classifier": {
+    "type": "SVC",
+    "kernel": "rbf",
+    "C": 1.0,
+    "gamma": "scale",
+    "probability": false,
+    "class_weight": null,
+    "cache_size_mb": 512,
+    "random_state": null,
+    "determinism": "SVC fit/predict is deterministic with probability disabled"
+  },
+  "preprocessing": {
+    "imputer": "Train-only median",
+    "scaler": "StandardScaler fit on Train only",
+    "scaler_fit_samples": 22388
+  },
+  "resource_assessment": {
+    "dense_kernel_matrix_gib": 3.7343989610671997,
+    "benchmark_train_calls": 5000,
+    "benchmark_fit_seconds": 0.6401257920078933,
+    "quadratic_projection_seconds": 12.833819118008446,
+    "full_fit_seconds": 7.970287166011985,
+    "validation_predict_seconds": 3.1312955830362625,
+    "decision": "Full RBF SVC retained: fixed 54-D matrix is small and measured resource benchmark was acceptable; libsvm cache capped at 512 MB."
+  },
+  "quality": {
+    "calls": 27985,
+    "mfcc_success_calls": 27985,
+    "mfcc_failure_calls": 0,
+    "segments": 442639,
+    "successful_segments": 442639,
+    "failed_segments": 0,
+    "short_segments_lt_25ms": 1,
+    "short_segment_rate": 2.259177343162261e-06,
+    "high_silence_segments": 742,
+    "high_silence_segment_rate": 0.0016763095886263976,
+    "raw_nan_model_values_train": 0,
+    "raw_nan_model_values_validation": 0,
+    "raw_inf_model_values_train": 0,
+    "raw_inf_model_values_validation": 0
+  },
+  "overall": {
+    "n": 5597,
+    "accuracy": 0.9506878685009826,
+    "male_n": 2620,
+    "female_n": 2977
+  },
+  "gender_accuracy": {
+    "M": {
+      "n": 2620,
+      "accuracy": 0.9480916030534351,
+      "male_n": 2620,
+      "female_n": 0
+    },
+    "F": {
+      "n": 2977,
+      "accuracy": 0.952972791400739,
+      "male_n": 0,
+      "female_n": 2977
+    }
+  },
+  "confusion_matrix": {
+    "labels": [
+      "M",
+      "F"
+    ],
+    "matrix": [
+      [
+        2484,
+        136
+      ],
+      [
+        140,
+        2837
+      ]
+    ]
+  },
+  "prediction_counts": {
+    "M": 2624,
+    "F": 2973
+  },
+  "duration_groups": {
+    "<8s": {
+      "n": 23,
+      "accuracy": 0.8260869565217391,
+      "male_n": 15,
+      "female_n": 8
+    },
+    "8–16s": {
+      "n": 328,
+      "accuracy": 0.9359756097560976,
+      "male_n": 174,
+      "female_n": 154
+    },
+    "16–32s": {
+      "n": 2754,
+      "accuracy": 0.9517066085693536,
+      "male_n": 1359,
+      "female_n": 1395
+    },
+    "32–64s": {
+      "n": 2231,
+      "accuracy": 0.9547288211564321,
+      "male_n": 972,
+      "female_n": 1259
+    },
+    ">=64s": {
+      "n": 261,
+      "accuracy": 0.9348659003831418,
+      "male_n": 100,
+      "female_n": 161
+    }
+  },
+  "segment_count_groups": {
+    "1–5": {
+      "n": 41,
+      "accuracy": 0.8536585365853658,
+      "male_n": 21,
+      "female_n": 20
+    },
+    "6–10": {
+      "n": 969,
+      "accuracy": 0.9442724458204335,
+      "male_n": 464,
+      "female_n": 505
+    },
+    "11–20": {
+      "n": 3558,
+      "accuracy": 0.9572793704328274,
+      "male_n": 1680,
+      "female_n": 1878
+    },
+    "21–40": {
+      "n": 1018,
+      "accuracy": 0.9381139489194499,
+      "male_n": 447,
+      "female_n": 571
+    },
+    ">=41": {
+      "n": 11,
+      "accuracy": 0.9090909090909091,
+      "male_n": 8,
+      "female_n": 3
+    }
+  },
+  "mfcc_quality_groups": {
+    "mfcc_success": {
+      "n": 5597,
+      "accuracy": 0.9506878685009826,
+      "male_n": 2620,
+      "female_n": 2977
+    },
+    "mfcc_failure": {
+      "n": 0,
+      "accuracy": null,
+      "male_n": 0,
+      "female_n": 0
+    },
+    "has_failed_segment": {
+      "n": 0,
+      "accuracy": null,
+      "male_n": 0,
+      "female_n": 0
+    },
+    "all_segments_succeeded": {
+      "n": 5597,
+      "accuracy": 0.9506878685009826,
+      "male_n": 2620,
+      "female_n": 2977
+    },
+    "has_short_segment_lt_25ms": {
+      "n": 0,
+      "accuracy": null,
+      "male_n": 0,
+      "female_n": 0
+    },
+    "no_short_segment_lt_25ms": {
+      "n": 5597,
+      "accuracy": 0.9506878685009826,
+      "male_n": 2620,
+      "female_n": 2977
+    },
+    "has_high_silence_segment": {
+      "n": 122,
+      "accuracy": 0.9590163934426229,
+      "male_n": 54,
+      "female_n": 68
+    },
+    "no_high_silence_segment": {
+      "n": 5475,
+      "accuracy": 0.9505022831050228,
+      "male_n": 2566,
+      "female_n": 2909
+    }
+  },
+  "comparison": {
+    "majority_accuracy": 0.5318920850455601,
+    "f0_overall_accuracy": 0.9120957655887082,
+    "f0_male_accuracy": 0.899618320610687,
+    "f0_female_accuracy": 0.9230769230769231,
+    "mfcc_minus_f0_accuracy": 0.03859210291227444,
+    "mfcc_minus_f0_male_accuracy": 0.04847328244274807,
+    "mfcc_minus_f0_female_accuracy": 0.029895868323815855,
+    "both_correct": 4967,
+    "mfcc_only_correct": 354,
+    "f0_only_correct": 138,
+    "both_wrong": 138,
+    "short_lt_8s_f0_accuracy": 0.9130434782608695,
+    "short_lt_8s_mfcc_accuracy": 0.8260869565217391
+  },
+  "runtime": {
+    "total_seconds": 1994.8176844579866,
+    "workers": 6,
+    "versions": {
+      "python": "3.12.2",
+      "numpy": "2.2.2",
+      "pandas": "2.3.0",
+      "librosa": "0.11.0",
+      "scipy": "1.18.1",
+      "soundfile": "0.13.1",
+      "scikit-learn": "1.9.1"
+    }
+  }
+}

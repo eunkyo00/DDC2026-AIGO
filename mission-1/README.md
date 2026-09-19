@@ -85,7 +85,7 @@ O  Call A 전체 → Train
 | Majority | 없음 | Female 고정 | 최소 기준 성능 |
 | F0 + Acoustic | 높낮이 + 기본 음향 특징 | Logistic Regression | 단순한 음향 정보의 효과 확인 |
 | MFCC | 음색 + 주파수 구조 | RBF SVM | 더 넓은 전통적 음성 특징의 추가 효과 확인 |
-| Wav2Vec2 / HuBERT | 사전학습된 음성 표현 | Classifier(분류기) | 사전학습 표현의 추가 효과 확인 |
+| Frozen Wav2Vec2 | 사전학습된 음성 표현 | StandardScaler + Logistic Regression | 사전학습 표현의 추가 효과 확인 |
 
 **확인된 실험 결과**는 먼저 아래 표에서 비교할 수 있다. 모두 **같은 Internal Validation 5,597통화의 call 단위 Accuracy**이며, 검증된 수치가 있는 방법만 기록한다.
 
@@ -94,8 +94,9 @@ O  Call A 전체 → Train
 | Majority | Female 고정 | 53.189209% |
 | F0 + Acoustic | Logistic Regression | 91.209577% |
 | MFCC | RBF SVM | **95.068787%** |
+| Frozen Wav2Vec2 | Logistic Regression | **97.248526%** |
 
-동일한 고정 Internal Validation에서 MFCC + RBF SVM이 F0 + Acoustic + Logistic Regression보다 **3.859210%p 높은 Accuracy**를 기록했다. 비교한 baseline 중 가장 높은 결과이며, 사전학습 모델과 후속 비교를 위한 기준으로 삼는다.
+동일한 고정 Internal Validation에서 Frozen Wav2Vec2가 MFCC보다 **2.179739%p 높은 Accuracy**를 기록했다. 27,985통화의 embedding을 L4 CUDA에서 모두 추출하고, 로컬에서 Train 22,388통화로만 분류기를 학습했다.
 
 ### Majority
 
@@ -149,13 +150,13 @@ Male/Female Accuracy는 각 실제 성별 통화 중 정답 비율이며, %p는 
 
 기본 음향 특징을 쓴 F0 baseline도 높은 정확도를 보였고, MFCC + RBF SVM은 이를 더 높였다. 이는 **음색과 더 넓은 주파수 구조가 추가 정보를 제공할 가능성**을 보여주며 남성 쪽 개선폭이 더 컸다. 다만 **특징과 분류기를 동시에 변경했으므로 향상 전체가 MFCC 자체의 효과라고 단정할 수 없다.** 혼동행렬·길이별 결과·재현 설정은 [MFCC REPORT](baseline/mfcc_svm/results/REPORT.md)에 있다.
 
-### Wav2Vec2 / HuBERT
+### Frozen Wav2Vec2 + Logistic Regression
 
 ```text
 Audio → Frozen Pretrained Encoder → Speech Embedding → Classifier → male / female
 ```
 
-**pretrained**는 대규모 음성으로 미리 학습했다는 뜻이며, **frozen**은 가중치 고정, **embedding**은 모델이 음성을 표현한 숫자 벡터다. Frozen 비교의 질문은 **“대규모 음성에서 배운 표현이 이미 강한 MFCC baseline을 넘어서는 추가 정보를 제공하는가?”**다. 모델의 복잡성보다 실제 추가 가치를 검증하고, 뚜렷한 이점이 있을 때 fine-tuning(모델 추가 학습)을 검토한다.
+`facebook/wav2vec2-base`의 고정 revision을 FP32·Frozen으로 사용했다. 8→16kHz resampling, 마지막 hidden state 시간 평균, segment 동일 가중 call 평균으로 768차원 embedding을 만들었다. Validation 5,597통화에서 Male **96.755725%**, Female **97.682230%**였다. MFCC와 공통 오답은 94통화이며, 두 모델의 오답 차이는 [결과 보고서](ssl/wav2vec2_frozen/results/REPORT.md)에 기록했다. 원본 WAV와 embedding cache는 저장소에 포함하지 않는다.
 
 ## 5. 결과 이후 분석과 개선
 
@@ -214,3 +215,4 @@ Call-level male / female → CSV
 | Validation sanity | [REPORT](validation/sanity/results/REPORT.md) |
 | F0 baseline | [README](baseline/f0_lr/README.md), [REPORT](baseline/f0_lr/results/REPORT.md) |
 | MFCC baseline | [README](baseline/mfcc_svm/README.md), [REPORT](baseline/mfcc_svm/results/REPORT.md) |
+| Frozen Wav2Vec2 | [README](ssl/wav2vec2_frozen/README.md), [REPORT](ssl/wav2vec2_frozen/results/REPORT.md) |

@@ -1,3 +1,6 @@
 cache/
 artifacts/
+*.npz
+*.joblib
+ssl/wav2vec2_frozen/results/full_l4/export_validation.json
 validation/sanity/results/json_fingerprints.csv

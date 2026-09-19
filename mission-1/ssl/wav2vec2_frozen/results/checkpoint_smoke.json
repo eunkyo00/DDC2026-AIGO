@@ -1,0 +1,75 @@
+{
+  "scope": "generated-waveform checkpoint/MPS diagnostic; not a real-data smoke test",
+  "checkpoint": "facebook/wav2vec2-base",
+  "revision": "0b5b8e868dd84f03fd87d01f9c4ff0f080fecfe8",
+  "device": "mps",
+  "os": "macOS-15.2-arm64-arm-64bit",
+  "versions": {
+    "python": "3.12.2",
+    "torch": "2.14.0",
+    "transformers": "5.17.0",
+    "numpy": "2.2.2",
+    "scipy": "1.18.1",
+    "soundfile": "0.13.1",
+    "scikit-learn": "1.9.1"
+  },
+  "total_encoder_parameters": 94371712,
+  "trainable_encoder_parameters": 0,
+  "frozen_parameter_versions_unchanged": true,
+  "elapsed_seconds": 3.1789682499947958,
+  "memory": {
+    "peak_rss_bytes": 406323200,
+    "mps_current_allocated_bytes": 377486848,
+    "mps_driver_allocated_bytes": 1141522432
+  },
+  "cases": [
+    {
+      "source_duration_s": 0.02,
+      "source_samples": 160,
+      "resampled_samples": 320,
+      "embedding_shape": [
+        768
+      ],
+      "finite": true,
+      "frames": 1,
+      "chunks": 1,
+      "too_short": true
+    },
+    {
+      "source_duration_s": 1.0,
+      "source_samples": 8000,
+      "resampled_samples": 16000,
+      "embedding_shape": [
+        768
+      ],
+      "finite": true,
+      "frames": 49,
+      "chunks": 1,
+      "too_short": false
+    },
+    {
+      "source_duration_s": 16.0,
+      "source_samples": 128000,
+      "resampled_samples": 256000,
+      "embedding_shape": [
+        768
+      ],
+      "finite": true,
+      "frames": 798,
+      "chunks": 2,
+      "too_short": false
+    }
+  ],
+  "loading_info": {
+    "missing_keys": [],
+    "unexpected_keys": [
+      "project_hid.bias",
+      "project_hid.weight",
+      "project_q.bias",
+      "project_q.weight",
+      "quantizer.codevectors",
+      "quantizer.weight_proj.bias",
+      "quantizer.weight_proj.weight"
+    ]
+  }
+}

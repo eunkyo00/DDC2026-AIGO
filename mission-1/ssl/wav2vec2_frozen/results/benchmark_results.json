@@ -1,0 +1,114 @@
+{
+  "dataset": {
+    "branch": "mission1/eunkyo",
+    "fixed_split": "/Users/joeunkyo/Documents/ChatGPT/AIGO/mission-1/validation/split_assignments.csv",
+    "split_sha256": "04b5018778321f775a0bf95949a37636090d4df4e3710b16627dfee309408f06",
+    "expected_calls": 27985,
+    "expected_segments": 442639,
+    "seed": 42
+  },
+  "encoder": {
+    "checkpoint": "facebook/wav2vec2-base",
+    "revision": "0b5b8e868dd84f03fd87d01f9c4ff0f080fecfe8",
+    "pretraining_source": "LibriSpeech 960 hours, self-supervised audio pretraining",
+    "input_sample_rate": 8000,
+    "expected_sample_rate": 16000,
+    "hidden_layer": "last_hidden_state",
+    "hidden_dimension": 768,
+    "total_parameters": 94371712,
+    "trainable_parameters": 0,
+    "frozen": true,
+    "eval_mode": true,
+    "gradient_mode": "torch.inference_mode",
+    "loading_info": {
+      "missing_keys": [],
+      "unexpected_keys": [
+        "project_hid.bias",
+        "project_hid.weight",
+        "project_q.bias",
+        "project_q.weight",
+        "quantizer.codevectors",
+        "quantizer.weight_proj.bias",
+        "quantizer.weight_proj.weight"
+      ]
+    }
+  },
+  "audio": {
+    "resampling": "scipy.signal.resample_poly up=2/down=1, Kaiser beta=5.0",
+    "segment_rule": "speaker=1, indexed start_s/end_s",
+    "short_input_rule": "zero-pad only inputs shorter than 400 samples at 16kHz",
+    "max_model_chunk_seconds": 15.0,
+    "long_segment_rule": "non-overlapping chunks; output-frame-count weighted temporal mean"
+  },
+  "pooling": {
+    "segment": "mean of last hidden state over time",
+    "call": "equal mean of segment embeddings"
+  },
+  "classifier": {
+    "scaler": "StandardScaler fit on Train only",
+    "type": "LogisticRegression",
+    "solver": "lbfgs",
+    "C": 1.0,
+    "max_iter": 1000,
+    "class_weight": null,
+    "random_state": 42
+  },
+  "runtime": {
+    "os": "macOS-15.2-arm64-arm-64bit",
+    "device": "mps",
+    "versions": {
+      "python": "3.12.2",
+      "torch": "2.14.0",
+      "transformers": "5.17.0",
+      "numpy": "2.2.2",
+      "scipy": "1.18.1",
+      "soundfile": "0.13.1",
+      "scikit-learn": "1.9.1"
+    }
+  },
+  "measurement": {
+    "mode": "benchmark",
+    "calls": 20,
+    "segments": 336,
+    "caller_audio_seconds": 655.775,
+    "elapsed_seconds": 83.45551062497543,
+    "seconds_per_call": 4.172775531248772,
+    "seconds_per_segment": 0.24837949590766498,
+    "audio_realtime_factor": 0.12726241565319726,
+    "embedding_shape": [
+      20,
+      768
+    ],
+    "finite": true,
+    "frozen_parameter_versions_unchanged": true,
+    "diagnostic_classifier": "end-to-end completed; accuracy intentionally not used",
+    "memory": {
+      "peak_rss_bytes": 486719488,
+      "mps_current_allocated_bytes": 377486848,
+      "mps_driver_allocated_bytes": 1149911040
+    }
+  },
+  "checks": {
+    "wav_loading": "pass",
+    "resampling_8k_to_16k": "pass",
+    "caller_crop": "pass",
+    "forward": "pass",
+    "embedding_shape": "pass",
+    "finite": "pass",
+    "frozen_unchanged": "pass",
+    "call_aggregation": "pass",
+    "diagnostic_classifier": "pass"
+  },
+  "projection": {
+    "dataset_calls": 27985,
+    "dataset_segments": 442639,
+    "dataset_caller_audio_seconds": 937138.612,
+    "projected_full_seconds": 119262.52356500435,
+    "projected_full_hours": 33.128478768056766,
+    "runtime_limit_hours": 12.0,
+    "full_run_recommended": false,
+    "decision_rule": "Run full only when measured projection is <=12 hours and memory is stable",
+    "call_embedding_cache_bytes": 85969920,
+    "segment_embeddings_persisted": false
+  }
+}

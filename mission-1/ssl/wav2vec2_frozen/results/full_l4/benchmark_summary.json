@@ -1,0 +1,18 @@
+{
+  "status": "pass",
+  "device": "cuda:0",
+  "gpu": "NVIDIA L4",
+  "calls": 20,
+  "segments": 336,
+  "caller_audio_seconds": 655.775,
+  "elapsed_seconds": 3.451936711000144,
+  "seconds_per_call": 0.1725968355500072,
+  "seconds_per_segment": 0.010273621163690905,
+  "audio_realtime_factor": 0.005263904099729547,
+  "peak_cuda_allocated_bytes": 556300800,
+  "peak_cuda_reserved_bytes": 889192448,
+  "drive_cache_probe_seconds": 0.43718692299989925,
+  "projected_audio_plus_cache_hours": 1.5402059954803518,
+  "actual_full_extraction_hours": 11.187423192461331,
+  "note": "Benchmark estimate was optimistic: the full run repeatedly committed files and progress to Drive, then audited the entire cache."
+}
