@@ -34,6 +34,8 @@ if __name__ == "__main__":
     p.add_argument("--data-dir", type=Path, default=ROOT / "data/processed/calls")
     p.add_argument("--manifest", type=Path, default=ROOT / "data/splits/fixed/split_manifest.csv")
     p.add_argument("--out-dir", type=Path, required=True)
+    p.add_argument("--fixed-threshold", action="store_true",
+                   help="Evaluate only at threshold 0.5; do not search label thresholds.")
     args = p.parse_args()
     if not torch.cuda.is_available():
         raise RuntimeError("Select a Colab GPU runtime before training")
@@ -81,5 +83,6 @@ if __name__ == "__main__":
     logits = trainer.predict(valid_ds).predictions
     if isinstance(logits, tuple):
         logits = logits[0]
-    save_predictions(out, valid, torch.sigmoid(torch.as_tensor(logits)).numpy())
+    save_predictions(out, valid, torch.sigmoid(torch.as_tensor(logits)).numpy(),
+                     tune_thresholds=not args.fixed_threshold)
     write_json(out / "training_log.json", trainer.state.log_history)

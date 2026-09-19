@@ -31,6 +31,17 @@ class EvaluationTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "alignment"):
                     ensemble.aligned(saved, corrupt)
 
+    def test_fixed_threshold_does_not_tune(self):
+        y = np.eye(9, dtype=int)
+        frame = pd.DataFrame(y, columns=TARGETS)
+        frame["file_name"] = [f"{i}.json" for i in range(9)]
+        with tempfile.TemporaryDirectory() as tmp:
+            save_predictions(Path(tmp), frame, y * .8 + .1, tune_thresholds=False)
+            metrics = __import__("json").loads((Path(tmp) / "metrics.json").read_text())
+            self.assertEqual(metrics["fixed_threshold"], .5)
+            self.assertEqual(metrics["fixed_threshold_macro_f1"], 1.)
+            self.assertNotIn("tuned_macro_f1", metrics)
+
     def test_original_manifest_order_and_overlap_rejection(self):
         frame = pd.DataFrame([{ "file_name": f"{i}.json", "text": "sample",
                                **{target: 0 for target in TARGETS}} for i in range(3)])

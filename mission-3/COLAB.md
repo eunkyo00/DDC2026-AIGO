@@ -40,6 +40,9 @@ Mac의 E0 백업에서 작은 `split_manifest.csv`만 추출해서 Colab 파일 
 !python mission-3/models/roberta/run_roberta.py --experiment e3 --out-dir /content/m3_runs/e3
 ```
 
+threshold를 0.5로 고정하는 실험이라면 모든 단독 모델 명령 끝에 `--fixed-threshold`를 붙인다.
+그때는 증상별 threshold 탐색을 수행하지 않는다.
+
 이 셀은 모델을 재학습한다. 기존에 온전한 가중치가 있다면 불필요하게 반복하지 않는다.
 GPU 메모리 부족이면 batch를 줄이고 accumulation을 늘려 유효 batch=8을 유지한다.
 

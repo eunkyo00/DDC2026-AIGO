@@ -73,19 +73,23 @@ def tune(y, probs):
     return thresholds, scores, float(np.mean(scores))
 
 
-def save_predictions(out, frame, probs):
+def save_predictions(out, frame, probs, threshold=0.5, tune_thresholds=True):
     import numpy as np
     from sklearn.metrics import f1_score
     y = frame[TARGETS].to_numpy(dtype=int)
     probs = np.asarray(probs)
     if probs.shape != y.shape or not np.isfinite(probs).all():
         raise ValueError("Invalid predictions")
-    thresholds, scores, macro = tune(y, probs)
+    fixed_macro = float(f1_score(y, probs >= threshold, average="macro", zero_division=0))
     np.savez_compressed(out / "dev_predictions.npz", file_names=frame.file_name.to_numpy(dtype=str),
                         targets=np.asarray(TARGETS), y_true=y, probs=probs)
-    metrics = {"default_macro_f1": float(f1_score(y, probs >= .5, average="macro", zero_division=0)),
-               "tuned_macro_f1": macro, "thresholds": thresholds, "targets": TARGETS,
-               "per_label_f1": scores, "evaluation": "internal validation; thresholds tuned on same set"}
+    metrics = {"fixed_threshold": threshold, "fixed_threshold_macro_f1": fixed_macro,
+               "targets": TARGETS, "evaluation": "internal validation"}
+    if tune_thresholds:
+        thresholds, scores, macro = tune(y, probs)
+        metrics.update({"tuned_macro_f1": macro, "thresholds": thresholds,
+                        "per_label_f1": scores,
+                        "evaluation": "internal validation; thresholds tuned on same set"})
     write_json(out / "metrics.json", metrics)
     print(json.dumps(metrics, ensure_ascii=False, indent=2))
 
