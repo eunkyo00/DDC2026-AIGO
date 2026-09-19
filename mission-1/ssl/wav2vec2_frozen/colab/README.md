@@ -53,14 +53,15 @@ Drive I/O가 느리면 로컬 디스크 WAV staging/사전 읽기를, 추출 자
 검토하되 측정 결과를 본 뒤 결정한다. 지금은 전체 WAV 복사/새 실험/연산 변경을 추가하지 않는다.
 추후 별도 full subprocess를 시작하기 전 `session.release_model()`로 notebook GPU 모델을 해제한다.
 
-## 현재 실행 범위
+## Notebook 실행 범위와 전체 실험 상태
 
 `Frozen_Wav2Vec2_Colab.ipynb`를 Colab에 업로드하고 GPU 런타임에서 단계별로 실행한다.
-현재는 CUDA 확인 → Drive 접근 → 최소 preflight → smoke → benchmark까지다.
+Notebook 자체의 범위는 CUDA 확인 → Drive 접근 → 최소 preflight → smoke → benchmark까지다.
 각 단계 결과를 전달하고 정상임을 확인한 뒤 다음 셀을 실행한다. 전체 실행을 누르지 않는다.
 Notebook에는 full extraction 실행 셀이 없으며, 모두 실행하더라도 benchmark에서 멈춘다.
 Full extraction은 benchmark 검토와 사용자의 명시적 승인 후 사용자가 직접 시작한다.
 로컬/Codex가 장시간 extraction을 실행하거나 세션을 유지할 필요는 없다.
+실제로는 별도 full CLI 실행과 로컬 평가까지 완료했으며 최종 결과는 `../results/full_l4/`에 있다.
 
 ## 코드 전달과 경로
 
@@ -102,7 +103,7 @@ encode_segment/aggregation 함수를 그대로 사용한다.
 - split SHA256: 04b5018778321f775a0bf95949a37636090d4df4e3710b16627dfee309408f06
 - Train/Validation=22,388/5,597, 27,985 calls, 442,639 caller segments
 - 로컬 평가 시 Train-only StandardScaler + LogisticRegression(C=1, lbfgs, max_iter=1000,
-  class_weight=None, random_state=42); 기존 evaluate_full 재사용 예정
+  class_weight=None, random_state=42); 실제 평가 진입점은 `../evaluate_colab_export.py`
 
 CUDA와 MPS 간 bitwise 동일성을 주장하지 않는다. 전체 결과는 모두 동일한 CUDA 환경에서 생성한다.
 GPU 이름/compute capability/CUDA/cuDNN/driver/라이브러리 버전/입력 CSV/코드 hash를 cache identity에
@@ -116,7 +117,7 @@ GPU 이름/compute capability/CUDA/cuDNN/driver/라이브러리 버전/입력 CS
 WAV open/read 검사는 기존 smoke/benchmark 대상 합집합에 한정한다. 결과에 selected_wav_calls,
 checked_calls, checked_call_ids와 검사 범위를 기록한다. 8kHz mono/crop bounds/finite samples/
 missing WAV/I/O error를 검사한다. 이 단계는 전체 WAV의 무오류를 보장하지 않으며 나머지는
-향후 full extraction 중 기존 encode_call이 읽고 검사한다.
+full extraction 중 기존 encode_call이 읽고 검사한다.
 
 CUDA unavailable이면 중단한다. model load 후 실제 CUDA device/FP32/frozen을 검사한다.
 Smoke/benchmark는 기존 저장된 call ID와 label/partition/구간 수/길이를 대조한다.
@@ -131,14 +132,14 @@ Benchmark는 기존 20 calls / 336 segments / 655.775초 audio와 비교한다.
 Mac runtime=83.455510625초, 4.172775531초/call, 0.248379496초/segment, RTF=0.127262416.
 약 33.13시간은 전체 caller audio × RTF 추정이다. Colab도 audio/call/segment 기반 예상 시간을
 따로 출력한다. runtime은 WAV 읽기+embedding 추출이며 모델 로드는 제외한다.
-RAM은 subprocess peak RSS, GPU는 모델 포함 allocated/reserved peak이다.
+RAM은 실행 프로세스의 peak RSS이며 session 재사용 시 누적 peak다. GPU는 모델 포함 allocated/reserved peak이다.
 Drive cache 쓰기 지연, session 제한 등으로 실제 전체 시간은 추정과 달라질 수 있다.
 기존 resource_assessment.json은 실제 smoke 이전 기록이며 이후 real-data smoke/benchmark를 기준으로 한다.
 
 ## 승인 이후 full extraction의 저장/복구
 
 별도 CLI의 `--stage extract`와 `--confirm-full-extraction`을 모두 명시해야 실행할 수 있다.
-같은 identity의 preflight/smoke/benchmark 성공도 필요하다. 현재 단계에서는 실행하지 않는다.
+같은 identity의 preflight/smoke/benchmark 성공도 필요하다. 완료된 실험도 이 별도 CLI로 실행했다.
 
 - OUTPUT_DIR/call_cache 아래 call ID 앞 두 자리로 폴더를 나누어 NPZ를 저장한다.
 - NPZ마다 call_id, FP32 (768,) embedding, quality, identity hash를 저장한다.
@@ -158,11 +159,16 @@ Drive cache 쓰기 지연, session 제한 등으로 실제 전체 시간은 추�
 
 ## 전체 추출 완료 후 로컬 전달
 
-call_cache 전체(identity.json 및 NPZ), embedding_index.csv, extraction_summary.json,
-progress.json, failures/, smoke/benchmark 결과를 로컬로 가져온다. HF model weights와 WAV를
-결과 전달에 포함할 필요는 없다. 로컬에서 fixed split과 모든 call/cache를 다시 검증한 뒤
-기존 evaluate_full로 학습/평가한다. Colab per-call cache를 Mac memmap과 섞거나 기존 evaluate
-CLI에 그대로 넣지 않는다. 변환/평가 실행 방법은 전체 추출이 완료된 다음 단계에서 준비한다.
+실제 실행에서는 Drive의 call별 NPZ를 검증하면서 통합한
+`wav2vec2_l4_full_embeddings.npz`를 로컬로 전달했다. 여기에는 embeddings, call_ids,
+gender, partition, n_segments, identity_json, summary_json이 포함된다. 별도의 작은 audit
+ZIP으로 index·summary·진행 기록·smoke/benchmark·코드를 함께 검토했다. 원본 call_cache는
+Drive에 보관하고 HF model weights와 WAV는 다운로드하지 않았다.
+
+로컬에서는 `../evaluate_colab_export.py`가 export SHA256, call 순서·성별·fixed split,
+FP32 shape·finite 값을 확인한 뒤 기존 설정의 Scaler/LR을 학습·평가했다. 명령과 환경은
+[Wav2Vec2 README](../README.md)의 로컬 재현 절차를 따른다. Colab cache는 초기 Mac
+memmap/evaluate CLI에 직접 넣지 않는다.
 
 최종 비교 기준: Majority 53.189209%, F0+Acoustic LR 91.209577%, MFCC RBF SVM 95.068787%.
 같은 Validation에서 Overall/Male/Female accuracy, confusion matrix, MFCC 오류 겹침을 비교한다.

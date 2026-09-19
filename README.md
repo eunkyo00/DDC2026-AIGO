@@ -120,12 +120,15 @@ threshold 조정을 고려할 만한 수준. 오디오가 이미 8kHz/mono로 �
 ### Mission 1 — 성별 분류
 
 - **입력 근거**: 라벨의 `startAt`/`endAt`/`speaker`만 학습 시 사용 가능 (대회 규정)
-- **처리**: 한 통화 안에서 신고자(`speaker == 1`) 발화 구간들만 골라 이어붙인 뒤,
-  5초 길이로 고정(짧으면 0-padding, 길면 trim) → MFCC(40계수) 추출
+- **현재 실험**: 신고자(`speaker == 1`) 구간을 사용하고 모델별 특징을 통화 단위로 집계한다.
+  F0 + Acoustic + LR, MFCC(13계수) + RBF SVM, Frozen Wav2Vec2 + LR 평가를 완료했다.
 - **라벨**: 통화 json의 `gender`
-- **관련 함수**: `crop_segment` → `pad_or_trim_to_length` → `extract_mfcc`
-  (`common/preprocessing/preprocessing_utils.py`)
-- **실측 성능**: 100건 기준 샘플당 평균 24ms → 전체 29,200건도 수 분 내 처리 가능
+- **결과**: 동일 Internal Validation 5,597통화에서 각각 91.209577%, 95.068787%,
+  97.248526%. 전체 L4 Wav2Vec2 embedding 추출 및 감사는 실제 11.19시간 걸렸다.
+- **초기 공통 유틸리티 예제**: 5초 pad/trim, MFCC 40계수와 100건 속도 측정은 초기
+  전처리 예제이며 현재 Mission 1 실험 설정·전체 소요시간을 나타내지 않는다.
+- **진행 상태**: 기본 오류 비교까지 완료. 개별 오답 원인 분석과 새 입력용 통합 추론은
+  후속 단계다. [Mission 1 README](mission-1/README.md)에서 설정·결과·폴더를 확인한다.
 
 ### Mission 2 — 화자 분류 (신고자 vs 119대원)
 

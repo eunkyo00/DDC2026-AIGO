@@ -40,25 +40,29 @@ WAV와 JSON을 파일명으로 연결하고, JSON의 `utterances[]`에서 신고
 
 EDA(데이터 구조·품질 탐색)는 성별 분포, 발화 수·길이, sample rate/channel, 기본 음향 품질, 신고자·상담원 구간 겹침, F0 추정 이상을 살폈다. 파일·라벨·시간 경계·WAV 헤더는 전수 확인하고 음향은 **80통화 표본**을 분석했다. 세부 결과와 검사 한계는 [eda/REPORT.md](eda/REPORT.md)에 있다.
 
-## 3. 전체 실험 전략
+## 3. 실제 진행 단계 (2026-09-19 기준)
 
 ```text
-데이터 구조 확인 / EDA → Call-level Validation 고정
+데이터 구조 확인 / EDA → Call-level Validation 고정 [완료]
         ↓
-Majority
+Majority [완료]
         ↓
-F0 + Acoustic → Logistic Regression
+F0 + Acoustic → Logistic Regression [완료]
         ↓
-MFCC → RBF SVM
+MFCC → RBF SVM [완료]
         ↓
-Wav2Vec2 / HuBERT
+Frozen Wav2Vec2 → StandardScaler + Logistic Regression [완료]
         ↓
-Error Analysis → 여러 신고자 발화 Aggregation
+성능·성별별 평가 / confusion matrix / MFCC 오류 겹침 분석 [완료]
         ↓
-필요한 성능 개선 → Final Inference Pipeline
+개별 오답 원인 분석 / 필요 시 Aggregation 개선 [미진행]
+        ↓
+필요한 성능 개선 → Final Inference Pipeline [미진행]
 ```
 
 **왜 이 순서인가?** 처음부터 복잡한 모델을 쓰기보다 단순한 방법으로 어디까지 가능한지 확인한다. 더 많은 음성 정보를 사용하는 방법을 차례로 비교해 **어떤 정보와 모델이 성능 향상에 기여하는지 같은 평가 조건에서 근거를 남긴다.** 오류 분석은 baseline부터 시작해 모델 비교 후에도 반복하며, 아래의 비교 설계와 실제 측정 결과는 구분한다.
+
+HuBERT는 실행하지 않았다. 여러 신고자 발화의 **특징 집계(aggregation)는 각 baseline에 이미 포함**된다. 오류 분석 이후 다른 집계 방식이나 개별 발화 예측 통합을 비교하는 실험은 아직 하지 않았다. 별도 경량 모델 작업은 아래 완료 결과에 포함하지 않는다.
 
 ### Call-level Validation
 
@@ -162,11 +166,13 @@ Audio → Frozen Pretrained Encoder → Speech Embedding → Classifier → male
 
 ### Error Analysis
 
-Accuracy만 보고 끝내지 않고 어떤 통화에서 틀리는지 살핀다. 확인 대상은 **짧은 발화, silence(무음) / clipping(진폭 한계 왜곡), 불안정한 F0, 신고자·상담원 겹침, 남녀별 오류 차이와 대표 오분류 음성**이다. 목적은 **모델의 한계인지, 데이터 품질인지, 발화 활용 방식의 문제인지 구분**하는 것이다.
+성별별 Accuracy, confusion matrix와 MFCC/Wav2Vec2의 call별 오류 겹침 비교는 완료했다. Wav2Vec2 오답은 154개이며 MFCC와 공통 오답은 94개다. MFCC 오답을 Wav2Vec2가 맞힌 경우는 182개, 반대는 60개다.
+
+개별 오답 음성을 듣고 **짧은 발화, silence / clipping, F0 이상, 신고자·상담원 겹침, 라벨 문제**로 원인을 분류하는 상세 분석은 아직 진행하지 않았다. 이 분석으로 데이터 문제와 모델의 한계를 구분할 예정이다.
 
 ### 여러 발화 활용
 
-한 통화에는 신고자 발화가 여러 개 있다. 한 개의 짧은 발화에 의존하기보다 여러 정보를 합쳐 안정적인 통화별 결과를 만드는 방법을 비교한다.
+현재 F0는 발화 특징의 평균·중앙값 등을, MFCC는 발화별 mean/std를 통화 단위로 집계한다. Wav2Vec2는 segment embedding의 동일 가중 평균을 사용한다. 따라서 여러 발화를 사용하는 단계는 이미 구현되어 있다.
 
 ```text
 segment 1 ─┐
@@ -174,13 +180,13 @@ segment 2 ─┼→ Call-level aggregation(통합) → 최종 성별
 segment 3 ─┘
 ```
 
-F0·MFCC 실험의 **특징 집계**와 별도로, 발화별 **예측 결과 통합**을 비교한다. 후보는 probability mean(확률 평균), majority voting(다수결), length weighted(길이 가중), confidence weighted(확신도 가중)다.
+발화별 확률 평균, 다수결, 길이·확신도 가중 등 다른 집계 방식의 비교는 후속 후보이며 미진행이다. 현재 결과에 이 방법들을 적용했다고 해석하면 안 된다.
 
 ### 필요한 경우 성능 개선
 
-후보는 partial fine-tuning(일부 층 추가 학습), F0/acoustic + SSL embedding hybrid(자기지도학습 음성 표현 결합), 약한 augmentation(음성 변형), threshold tuning(판정 경계 조정), ensemble(모델 결과 결합)이다. **모두 적용하지 않고 오류 분석과 모델 비교 결과에 근거해 선택한다.** 강한 높낮이 변형은 성별 단서를 바꿀 수 있어 조심한다.
+현재 Frozen Wav2Vec2 실험에는 fine-tuning, hybrid, augmentation, threshold tuning, ensemble, hyperparameter search를 적용하지 않았다. 추가 개선은 상세 오류 분석과 실행 비용을 확인한 뒤 별도 실험으로 결정한다.
 
-## 6. 최종 Inference Pipeline
+## 6. 최종 Inference Pipeline — 미구현
 
 ```text
 WAV + JSON
@@ -195,6 +201,22 @@ Call-level male / female → CSV
 ```
 
 최종 목표는 `inference.py` 같은 **하나의 실행 진입점에서 입력부터 CSV 생성까지 자동화**하는 것이다. 파일명은 설계 예시이며, 특징을 먼저 집계하는 모델은 해당 순서를 모델 구조에 맞춘다. JSON 읽기, 음성 전처리, 예측은 학습 때 정한 방식과 일치시킨다.
+
+현재 코드는 고정된 데이터의 특징 추출·분류기 학습·Validation 평가를 위한 실험 파이프라인이다. 임의의 새 WAV/JSON을 입력받는 배포용 통합 추론 진입점이 완성된 상태는 아니다.
+
+### 저장소 폴더 안내
+
+| 경로 | 역할과 상태 |
+|---|---|
+| `eda/` | 데이터 구조·품질 확인, 완료 |
+| `validation/` | 고정 split과 분할 검증, 완료 |
+| `baseline/f0_lr/` | F0 + Acoustic baseline, 완료 |
+| `baseline/mfcc_svm/` | MFCC + RBF SVM baseline, 완료 |
+| `ssl/wav2vec2_frozen/colab/` | CUDA embedding 추출용 notebook·runner |
+| `ssl/wav2vec2_frozen/results/full_l4/` | 최종 L4 추출 요약·로컬 평가 metrics·Validation 예측 |
+| `ssl/wav2vec2_frozen/results/`의 smoke·benchmark 파일 | 초기 Mac 진단 기록; 최종 정확도는 `full_l4/` 참고 |
+
+폴더 이름과 코드 경로는 재현 명령을 보존하기 위해 유지한다. raw WAV·model weight·embedding cache는 GitHub에 포함하지 않는다.
 
 ## 7. 주요 데이터 리스크 및 상세 문서
 
