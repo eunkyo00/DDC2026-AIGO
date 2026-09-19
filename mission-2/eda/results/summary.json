@@ -1,0 +1,111 @@
+{
+  "generated_at_utc": "2026-09-17T02:08:24.511457+00:00",
+  "method": {
+    "mission": "speaker classification",
+    "allowed_fields": [
+      "speaker",
+      "startAt",
+      "endAt",
+      "WAV header"
+    ],
+    "excluded_from_outputs": [
+      "text",
+      "raw file stem",
+      "absolute path",
+      "utterance order feature"
+    ],
+    "data_root_name": "대학부 데이터",
+    "limit_calls_per_split": 0,
+    "wav_headers_skipped": false
+  },
+  "splits": {
+    "Training": {
+      "split": "Training",
+      "calls_scanned": 29200,
+      "limited_run": false,
+      "file_counts": {
+        "wav_files": 29200,
+        "json_files": 29200,
+        "unique_stems": 29200,
+        "duplicate_wav_stems": 0,
+        "duplicate_json_stems": 0,
+        "json_ok": 29200,
+        "utterances_total": 889358,
+        "utterances_valid": 889358
+      },
+      "sample_rates": {
+        "8000": 29200
+      },
+      "channels": {
+        "1": 29200
+      },
+      "sample_width_bits": {
+        "16": 29200
+      },
+      "duration_seconds": {
+        "speaker_0": {
+          "min": 0.01,
+          "p25": 0.883,
+          "median": 1.402,
+          "p75": 2.308,
+          "p95": 4.699,
+          "max": 19.802,
+          "mean": 1.823234
+        },
+        "speaker_1": {
+          "min": 0.009,
+          "p25": 0.809,
+          "median": 1.49,
+          "p75": 2.826,
+          "p95": 5.9652,
+          "max": 24.172,
+          "mean": 2.119039
+        }
+      }
+    },
+    "Validation": {
+      "split": "Validation",
+      "calls_scanned": 3640,
+      "limited_run": false,
+      "file_counts": {
+        "wav_files": 3640,
+        "json_files": 3640,
+        "unique_stems": 3640,
+        "duplicate_wav_stems": 0,
+        "duplicate_json_stems": 0,
+        "json_ok": 3640,
+        "utterances_total": 111947,
+        "utterances_valid": 111947
+      },
+      "sample_rates": {
+        "8000": 3640
+      },
+      "channels": {
+        "1": 3640
+      },
+      "sample_width_bits": {
+        "16": 3640
+      },
+      "duration_seconds": {
+        "speaker_0": {
+          "min": 0.1,
+          "p25": 0.88,
+          "median": 1.399,
+          "p75": 2.306,
+          "p95": 4.673,
+          "max": 17.152,
+          "mean": 1.819331
+        },
+        "speaker_1": {
+          "min": 0.09,
+          "p25": 0.806,
+          "median": 1.485,
+          "p75": 2.824,
+          "p95": 5.9519,
+          "max": 18.451,
+          "mean": 2.115164
+        }
+      }
+    }
+  }
+}
