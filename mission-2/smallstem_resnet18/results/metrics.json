@@ -1,0 +1,32 @@
+{
+  "source": {
+    "type": "user_provided_checkpoint_and_history",
+    "validation_audio_rerun": false,
+    "checkpoint_sha256": "5a5dfa14227bb7c0961ff13e8f845c6d58bb66124b5875d316cf1e73ce9e84f5",
+    "history_sha256": "cdbfbacbb463603d475dc57acfd89f7e7906ebbd5d1196bf08525f51edfea3e5"
+  },
+  "dataset": {
+    "training_utterances": 889358,
+    "validation_utterances": 111947,
+    "unit": "utterance",
+    "split": "official Training / Validation folders"
+  },
+  "model": {
+    "name": "resnet18_smallstem",
+    "parameters": 11169858,
+    "feature_variant": "first_1p5",
+    "input_shape": [1, 64, 24],
+    "sample_rate_hz": 8000,
+    "n_mels": 64,
+    "target_seconds": 1.5
+  },
+  "best_epoch": 16,
+  "validation": {
+    "samples": 111947,
+    "loss": 0.2737853731143933,
+    "accuracy_at_0_5": 0.9013997695337972,
+    "accuracy_tuned": 0.9024895709576853,
+    "threshold": 0.5350000000000004,
+    "confusion_matrix_true_rows_pred_columns": [[46396, 7449], [3467, 54635]]
+  }
+}
