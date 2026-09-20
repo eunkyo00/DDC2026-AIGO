@@ -1,0 +1,16 @@
+{
+  "metric": "macro_f1",
+  "evaluation": "internal development set; thresholds and weights selected on this set",
+  "independent_test": false,
+  "training_count": 23408,
+  "dev_count": 5792,
+  "runs": [
+    {"name": "E0_first512", "tuned_macro_f1": 0.6426334007761295, "source": "local E0 export experiment_info.json"},
+    {"name": "E1_head_tail", "default_macro_f1": 0.6092, "tuned_macro_f1": 0.6448, "source": "user Colab screenshot; rounded"},
+    {"name": "TFIDF", "tuned_macro_f1": 0.6028, "source": "user Colab screenshot; rounded"},
+    {"name": "E2", "tuned_macro_f1": 0.6493639400184097, "weights": {"E1": 0.55, "TFIDF": 0.45}, "source": "local E2 export summary.json"},
+    {"name": "E3_large", "default_macro_f1": 0.6194, "tuned_macro_f1": 0.6479, "source": "user Colab screenshot; rounded"},
+    {"name": "E3_TFIDF", "tuned_macro_f1": 0.6519, "weights": {"E3": 0.5, "TFIDF": 0.5}, "source": "user Colab screenshot; rounded"},
+    {"name": "E3_E2", "tuned_macro_f1": 0.6562, "weights": {"E3": 0.35, "E1": 0.3575, "TFIDF": 0.2925}, "source": "user Colab screenshot; rounded"}
+  ]
+}

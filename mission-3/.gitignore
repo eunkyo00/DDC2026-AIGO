@@ -1,0 +1,14 @@
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/splits/*
+!data/splits/.gitkeep
+artifacts/*
+!artifacts/.gitkeep
+*.safetensors
+*.joblib
+*.npz
+*.npy
+*.tar.gz
+*.zip
