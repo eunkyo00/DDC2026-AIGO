@@ -3,13 +3,17 @@
 통화의 신고자 음성을 사용해 **통화별 Male / Female을 예측**한다.
 입력은 WAV와 발화 구간이 기록된 JSON이며, 평가는 통화 단위 Accuracy로 비교한다.
 
-> **현재 상태 · 2026-09-19**
+> **현재 상태 · 2026-09-20**
 >
 > Frozen Wav2Vec2 baseline과 기본 오류 비교까지 완료했다.
 >
-> 최고 Accuracy는 **97.248526%**다. 개별 오답 원인 분석과 최종 통합 추론은 다음 단계다.
+> 최고 Accuracy는 **97.248526%**다. **99% 목표 추가 실험은 계획 단계**이며 아직 실행하지 않았다.
 
 [실험 결과](#실험-결과) · [진행 상황](#진행-상황) · [데이터와-평가-기준](#데이터와-평가-기준) · [폴더와-실행-안내](#폴더와-실행-안내)
+
+**다음 실험:** 기존 embedding으로 LR 조정·MFCC 특징 결합·RBF SVM을 비교하고,
+Train 교차검증 오답 분석 후 필요하면 새 모델을 검토한다.
+→ [99% 목표 실험 계획: 이유·설정·선택 기준·진행 순서](EXPERIMENT_PLAN_99.md)
 
 ## 실험 결과
 
@@ -51,18 +55,22 @@ Majority → F0 + Acoustic + LR → MFCC + RBF SVM
         ↓
 Frozen Wav2Vec2 + LR → 성능·성별별 평가·오류 겹침 분석
         ↓
-개별 오답 원인 분석 → 필요한 개선 → 최종 통합 추론
+기존 특징 활용 개선 + Train OOF 오답 분석
+        ↓
+필요 시 새 모델·집계 개선 → 최종 평가 → 통합 추론
 ```
 
 | 상태 | 범위 |
 |---|---|
 | 완료 | EDA, fixed split, 네 baseline 평가, 성별별 평가·confusion matrix·오류 겹침 |
-| 다음 단계 | 개별 오답의 원인 분석, 필요 시 다른 aggregation·모델 개선 검토 |
+| 다음 단계 · 계획 | 기존 embedding 기반 LR 조정·MFCC 결합·RBF SVM, Train OOF 오답 분석 |
+| 조건부 후속 후보 | Frozen ECAPA, 부분 fine-tuning 또는 aggregation 개선 |
 | 미구현 | 새 WAV/JSON 입력부터 최종 예측 CSV까지 연결하는 통합 추론 진입점 |
 
 여러 발화의 **특징 집계(aggregation)는 각 baseline에 이미 적용**했다.
 다른 집계 방식의 비교, HuBERT, fine-tuning, augmentation, ensemble, hybrid,
-threshold tuning, hyperparameter search는 이번 Wav2Vec2 실험에 포함하지 않았다.
+threshold tuning, hyperparameter search는 **완료된 Wav2Vec2 baseline**에 포함하지 않았다.
+특징 결합과 제한된 파라미터 비교는 별도 후속 실험으로 계획했으며 기존 결과와 구분한다.
 별도 경량 모델 작업도 위 완료 결과에 포함하지 않는다.
 
 ## 데이터와 평가 기준
@@ -126,13 +134,14 @@ Wav2Vec2는 고정 revision의 `facebook/wav2vec2-base`를 **FP32·Frozen**으�
 | F0 이상 | 약 660Hz 톤이 F0 약 329Hz로 추정된 사례가 있다. 추정 F0를 항상 사람의 실제 높낮이로 볼 수 없다. |
 | EDA 범위 | 파일·라벨·시간 경계·WAV 헤더는 전수 확인했고, 음향 품질 분석은 80통화 표본을 사용했다. |
 
-다음 상세 오류 분석에서는 짧은 발화, 무음·clipping, 라벨 문제와 발화 겹침을 확인한다.
-개선 실험은 그 결과에 근거해 결정한다.
+다음 상세 오류 분석에서는 Train OOF 예측을 이용해 짧은 발화, 무음·clipping,
+라벨 문제와 발화 겹침을 확인한다. 새 모델·집계 개선의 방향은 이 결과에 근거해 결정한다.
 
 ## 폴더와 실행 안내
 
 | 경로 | 역할 | 문서 |
 |---|---|---|
+| `EXPERIMENT_PLAN_99.md` | 99% 목표의 추가 실험 설계 · 아직 미실행 | [실험 계획](EXPERIMENT_PLAN_99.md) |
 | `eda/` | 데이터 구조·품질 확인 | [README](eda/README.md) · [REPORT](eda/REPORT.md) |
 | `validation/` | fixed split과 분할 검증 | [README](validation/README.md) · [REPORT](validation/REPORT.md) |
 | `validation/sanity/` | 추가 분할 점검 | [REPORT](validation/sanity/results/REPORT.md) |
