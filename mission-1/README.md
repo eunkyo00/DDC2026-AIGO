@@ -3,17 +3,22 @@
 통화의 신고자 음성을 사용해 **통화별 Male / Female을 예측**한다.
 입력은 WAV와 발화 구간이 기록된 JSON이며, 평가는 통화 단위 Accuracy로 비교한다.
 
-> **현재 상태 · 2026-09-20**
+> **현재 상태 · 2026-09-22**
 >
 > Frozen Wav2Vec2 baseline과 기본 오류 비교까지 완료했다.
 >
-> 최고 Accuracy는 **97.248526%**다. **99% 목표 추가 실험은 계획 단계**이며 아직 실행하지 않았다.
+> 최고 Internal Validation Accuracy는 **97.248526%**다.
+> 추가 Train 200통화 비교에서 **성별 분류용 ECAPA 198/200(99%)**를 확인했다.
+> 다음은 설정을 고정한 ECAPA의 Internal Validation 평가이며, 아직 미실행이다.
 
 [실험 결과](#실험-결과) · [진행 상황](#진행-상황) · [데이터와-평가-기준](#데이터와-평가-기준) · [폴더와-실행-안내](#폴더와-실행-안내)
 
-**다음 실험:** 기존 embedding으로 LR 조정·MFCC 특징 결합·RBF SVM을 비교하고,
-Train 교차검증 오답 분석 후 필요하면 새 모델을 검토한다.
+**추가 실험 결과:** Train CV 최고는 MFCC 결합 LR의 **97.453991%**다.
+이는 위 Internal Validation 성능과 별개다. 새 모델의 Train 200통화 비교는 ECAPA **99%**, WavLM **95%**였다.
+추가 2,000통화 비교를 생략하고 ECAPA를 고정해 Internal Validation 5,597통화를 평가하기로 했다.
+200통화의 99%를 최종 성능표에 포함하지 않는다. → [200통화 결과·선택 이유](experiments/gender_model_comparison/SCREEN_200_REPORT.md)
 → [99% 목표 실험 계획: 이유·설정·선택 기준·진행 순서](EXPERIMENT_PLAN_99.md)
+ · [추가 실험·오답 분석](experiments/embedding_classifiers/ERROR_ANALYSIS.md)
 
 ## 실험 결과
 
@@ -57,20 +62,24 @@ Frozen Wav2Vec2 + LR → 성능·성별별 평가·오류 겹침 분석
         ↓
 기존 특징 활용 개선 + Train OOF 오답 분석
         ↓
-필요 시 새 모델·집계 개선 → 최종 평가 → 통합 추론
+성별 분류용 ECAPA / WavLM: Train 200통화 비교 완료
+        ↓
+ECAPA 설정 고정 → Internal Validation 5,597통화 평가(예정) → 통합 추론
 ```
 
 | 상태 | 범위 |
 |---|---|
 | 완료 | EDA, fixed split, 네 baseline 평가, 성별별 평가·confusion matrix·오류 겹침 |
-| 다음 단계 · 계획 | 기존 embedding 기반 LR 조정·MFCC 결합·RBF SVM, Train OOF 오답 분석 |
-| 조건부 후속 후보 | Frozen ECAPA, 부분 fine-tuning 또는 aggregation 개선 |
+| 추가 실험 완료 | 8개 설정 × 3-fold, Train OOF 정량 오류 분석; 새 Validation 평가는 미실행 |
+| 예비 비교 완료 | 동일 Train 200통화: ECAPA 99%, WavLM 95%; 사용자 전달 결과 기준 |
+| 다음 단계 · 계획 | 성별 분류용 ECAPA 설정 고정 → 기존 Internal Validation 5,597통화 평가 |
+| 미완료·보류 | 표본 청취, WavLM 확대 비교, fine-tuning·새 집계 개선 |
 | 미구현 | 새 WAV/JSON 입력부터 최종 예측 CSV까지 연결하는 통합 추론 진입점 |
 
 여러 발화의 **특징 집계(aggregation)는 각 baseline에 이미 적용**했다.
 다른 집계 방식의 비교, HuBERT, fine-tuning, augmentation, ensemble, hybrid,
 threshold tuning, hyperparameter search는 **완료된 Wav2Vec2 baseline**에 포함하지 않았다.
-특징 결합과 제한된 파라미터 비교는 별도 후속 실험으로 계획했으며 기존 결과와 구분한다.
+특징 결합과 제한된 파라미터 비교는 별도 후속 Train CV로 완료했으며 기존 결과와 구분한다.
 별도 경량 모델 작업도 위 완료 결과에 포함하지 않는다.
 
 ## 데이터와 평가 기준
@@ -134,14 +143,17 @@ Wav2Vec2는 고정 revision의 `facebook/wav2vec2-base`를 **FP32·Frozen**으�
 | F0 이상 | 약 660Hz 톤이 F0 약 329Hz로 추정된 사례가 있다. 추정 F0를 항상 사람의 실제 높낮이로 볼 수 없다. |
 | EDA 범위 | 파일·라벨·시간 경계·WAV 헤더는 전수 확인했고, 음향 품질 분석은 80통화 표본을 사용했다. |
 
-다음 상세 오류 분석에서는 Train OOF 예측을 이용해 짧은 발화, 무음·clipping,
-라벨 문제와 발화 겹침을 확인한다. 새 모델·집계 개선의 방향은 이 결과에 근거해 결정한다.
+Train OOF 정량 분석에서는 길이·무음·성별·추정 F0와 오류의 연관을 확인했다.
+잡음·clipping·다중 화자·라벨 문제는 아직 청취로 확인하지 않았다.
+새 모델·집계 개선의 방향은 정량 분석과 표본 청취에 근거해 결정한다.
 
 ## 폴더와 실행 안내
 
 | 경로 | 역할 | 문서 |
 |---|---|---|
-| `EXPERIMENT_PLAN_99.md` | 99% 목표의 추가 실험 설계 · 아직 미실행 | [실험 계획](EXPERIMENT_PLAN_99.md) |
+| `EXPERIMENT_PLAN_99.md` | 99% 목표의 추가 실험 설계·진행 상태 | [실험 계획](EXPERIMENT_PLAN_99.md) |
+| `experiments/gender_model_comparison/` | 성별 사전학습 모델 예비 비교·ECAPA 후속 평가 계획 | [결과](experiments/gender_model_comparison/SCREEN_200_REPORT.md) · [새 창 전달](experiments/gender_model_comparison/ECAPA_VALIDATION_HANDOFF.md) |
+| `experiments/embedding_classifiers/` | 저장된 특징의 Train 내부 CV·오답 분석 | [실행 안내](experiments/embedding_classifiers/README.md) · [분석 결과](experiments/embedding_classifiers/ERROR_ANALYSIS.md) |
 | `eda/` | 데이터 구조·품질 확인 | [README](eda/README.md) · [REPORT](eda/REPORT.md) |
 | `validation/` | fixed split과 분할 검증 | [README](validation/README.md) · [REPORT](validation/REPORT.md) |
 | `validation/sanity/` | 추가 분할 점검 | [REPORT](validation/sanity/results/REPORT.md) |

@@ -1,0 +1,5 @@
+artifacts/
+results/
+data/
+*.npz
+*.joblib

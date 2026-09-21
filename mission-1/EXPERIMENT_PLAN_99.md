@@ -1,11 +1,15 @@
 # Mission 1 · 99% 목표 추가 실험 계획
 
-> 작성: 2026-09-20 · 상태: **계획 수립, 추가 실험 미실행**
+> 업데이트: 2026-09-22 · 상태: **Train CV·오답 분석·새 모델 200통화 비교 완료, ECAPA Validation 평가 예정**
 >
 > 기존 최고 결과는 Internal Validation **97.248526%**다.
 > 99%는 연구 목표이며, 아래 실험의 예상 성능이나 달성 보장이 아니다.
 
 [현재 결과](README.md#실험-결과) · [기존 Wav2Vec2 REPORT](ssl/wav2vec2_frozen/results/REPORT.md)
+
+실행 현황: [전체 비교·오답 분석](experiments/embedding_classifiers/ERROR_ANALYSIS.md) ·
+[로컬 실행 안내](experiments/embedding_classifiers/README.md).
+최고 CV 평균은 MFCC 결합 LR의 97.453991% (`C=0.1`)이며, 새로운 holdout 결과는 아직 없다.
 
 ## 추가 실험이 필요한 이유
 
@@ -34,15 +38,18 @@ A. 기존 embedding 활용: LR 기준 비교 → MFCC 결합 → RBF SVM
         ↓
 B. Train 교차검증 오답 분석: 어떤 오류가 남는가?
         ↓
-C. 필요 시 Frozen ECAPA: 다른 사전학습 표현 비교
+C. 성별 사전학습 ECAPA / WavLM의 Train 200통화 비교 완료
         ↓
-D. 필요 시 부분 fine-tuning 또는 발화 집계 개선
-        ↓
-Train 내부에서 최종 설정 선택 → 고정 Validation 평가 → 통합 추론
+ECAPA 설정 고정 → 고정 Validation 5,597통화 평가 → 통합 추론
+
+D. 추가 개선이 필요할 때만 Train에서 부분 fine-tuning·집계 개선 검토
 ```
 
-우선 A를 진행한다. B는 A에서 생성한 out-of-fold(OOF) 예측을 이용한다.
-C·D는 후속 후보이며 현재 구현·학습·전체 추출을 시작한 상태가 아니다.
+실행 결과 A의 24회 비교와 B의 정량 분석을 완료했다. B는 A에서 생성한
+out-of-fold(OOF) 예측을 이용하며, 청취 검토는 아직 남아 있다.
+C는 ECAPA 198/200, WavLM 190/200의 사용자 전달 결과를 확인했다. 추가 2,000통화 비교를 생략하고
+ECAPA 설정을 고정해 Internal Validation 5,597통화를 평가하기로 했다. D는 현재 보류한다.
+[예비 결과·고정 설정·다음 평가](experiments/gender_model_comparison/SCREEN_200_REPORT.md).
 
 ## 평가 규칙
 
@@ -118,26 +125,22 @@ Train OOF 예측에서 기준선과 새 후보가 모두 틀린 통화, 새로 �
 길이 가중 집계 등의 실험에는 segment별 embedding이 필요하다. 현재 call 평균
 embedding만으로 복원할 수 있다고 가정하지 않고 저장 자료부터 확인한다.
 
-## C. 새 모델 후보: Frozen ECAPA-TDNN
+## C. 성별 분류용 사전학습 모델 비교 → ECAPA 평가
 
-첫 후보는 `speechbrain/spkrec-ecapa-voxceleb`이다. 화자 인식을 위해 학습된 표현이
-이번 목소리 분류에도 도움이 될 수 있다는 **실험 가설**이다. 공식 화자 검증 성능을
-우리 데이터의 성별 정확도로 해석하지 않는다. 더 빠른지도 benchmark로 확인한다.
-[공식 모델 카드](https://huggingface.co/speechbrain/spkrec-ecapa-voxceleb)
+초기 가설이던 화자 인식용 `speechbrain/spkrec-ecapa-voxceleb`의 embedding + LR 대신,
+성별 분류용으로 학습된 `JaesungHuh/voice-gender-classifier`와 `tiantiaf/wavlm-large-age-sex`를 비교했다.
+두 모델 모두 추가 학습 없이 frozen 상태에서 성별 확률을 출력했다.
 
-| 항목 | 초기 비교 설계 |
-|---|---|
-| 입력 | 동일한 caller segments, 기존 8→16kHz resampling, mono |
-| 추출 | 모델 revision·패키지 버전 고정, FP32·Frozen, batch size 1 |
-| 집계 | 모델의 segment embedding을 동일 가중 call 평균 |
-| 분류 | Train-only Scaler + LR `C=1`, 기존 LR 설정 |
-| 평가 | A와 동일한 Train 내부 fold에서 기존 기준선·선택 후보와 비교 |
-| 저장 | 기존 Wav2Vec2와 별도 cache, call_id·완료/실패·identity 기록 |
+동일 Train 200통화에서 ECAPA 99%, WavLM 95%, 기존 LR/fusion OOF 97.5%였다.
+200개 차이만으로 최종 성능이나 통계적 우월성을 확정하지 않는다.
+실행 비용을 줄이기 위해 2,000개 확대 비교를 생략하고, ECAPA의 checkpoint·전처리·집계를 고정한 뒤
+기존 Internal Validation 5,597개를 평가한다. 학습이 없으므로 Train 22,388개에 별도 fit하지 않는다.
+위 CV·Scaler 규칙은 A의 학습형 분류기에 적용되며 이 frozen 직접 분류기에는 적용하지 않는다.
 
-모델 고유의 최소 입력 길이·정규화·장구간 처리는 구현 전에 문서화한다.
-6-call smoke → 20-call benchmark로 정확성을 확인하고, 실제 Drive 입출력·영속 저장을
-포함한 추가 시간 측정 후 full extraction 여부를 판단한다. 첫 benchmark만으로 전체
-시간을 보장하지 않는다. 전체 추출은 사용자가 Colab에서 수행하고, 학습·평가는 로컬에서 한다.
+caller 전체 연결 → 최대 15초 균등 창 → 실제 길이 가중 확률 평균으로 기존 Wav2Vec2와 집계가 다르므로
+전체 파이프라인을 비교한다. 정확한 revision·조건·저장 방식과 판정 기준은
+[200통화 결과 및 평가 계획](experiments/gender_model_comparison/SCREEN_200_REPORT.md),
+실행 인계는 [다음 창 프롬프트](experiments/gender_model_comparison/ECAPA_VALIDATION_HANDOFF.md)에 기록했다.
 
 ## D. 표현 개선이 더 필요한 경우
 
@@ -161,7 +164,9 @@ Frozen 후보들의 Train OOF 오류가 많이 남으면 다음 두 방향 중 �
 | 실험 | CV 평균/범위 | Validation Overall / Male / Female | 오답 수·순감소 | 시간 | 상태 |
 |---|---|---|---|---|---|
 | 기존 Wav2Vec2 + LR | 추가 비교 때 측정 | 97.248526 / 96.755725 / 97.682230% | 154 / 기준 | 추출 11.19h, LR 약 3s | 완료 |
-| A1 / A2 / A3 | 미측정 | 미측정 | 미측정 | 미측정 | 계획 |
+| A1 · C=0.1 | 97.297651% / 97.118735–97.467506% | 미측정 | 미측정 | A1 9회 fit 총 18.30s | Train CV 완료 |
+| A2 · C=0.1 | 97.453991% / 97.413562–97.521104% | 미측정 | 미측정 | 선택 후보 3-fold fit 총 4.65s | Train CV 완료 |
+| A3 · C=1 | 96.663390% / 96.502747–96.837733% | 미측정 | 미측정 | 선택 후보 3-fold fit 총 60.37s | Train CV 완료 |
 | C / D | 미측정 | 미측정 | 미측정 | 미측정 | 조건부 후보 |
 
 Validation에서는 confusion matrix, 기존 모델과의 오류 겹침, 새 정답/새 오답을 함께
