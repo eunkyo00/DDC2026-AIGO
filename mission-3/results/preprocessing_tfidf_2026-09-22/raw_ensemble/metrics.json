@@ -1,0 +1,11 @@
+{
+  "fixed_threshold": 0.5,
+  "fixed_threshold_macro_f1": 0.5868706093345915,
+  "evaluation": "internal validation",
+  "model": "KLUE-RoBERTa + TF-IDF",
+  "roberta_head": "label_attention",
+  "roberta_preprocessing": "raw",
+  "tfidf_preprocessing": "raw full text",
+  "roberta_weight": 0.5,
+  "tfidf_weight": 0.5
+}

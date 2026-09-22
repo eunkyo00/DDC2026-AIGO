@@ -1,0 +1,8 @@
+{
+  "fixed_threshold": 0.5,
+  "fixed_threshold_macro_f1": 0.6074746100767916,
+  "head": "label_attention",
+  "preprocessing": "raw",
+  "evaluation": "internal validation",
+  "selection": "final_epoch"
+}

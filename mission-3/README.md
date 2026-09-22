@@ -29,6 +29,14 @@ Mission 1의 음성 매칭 cohort와 다르게 Mission 3는 JSON 29,200건을 �
 
 ## 지금까지의 결과
 
+후속 실험 기록:
+
+- [고정 임계값 0.5 재실험](results/FIXED_THRESHOLD_0_5_2026-09-20.md): E0+E3 0.6174.
+- [분류 head 비교](results/head_comparison_2026-09-22/README.md): CLS 0.6102 / Mean 0.6116 / 증상별 Attention 0.6144.
+- [새 Colab head 비교 노트북](models/roberta/M3_fixed05_head_experiments.ipynb): 오류 분석부터 결과 백업까지.
+
+아래 표는 이전 threshold 조정 실험 기록이며 위 후속 실험과 구분한다.
+
 모두 사용자가 Colab에서 수행하고 화면/백업으로 제공한 **내부 검증 결과**다.
 이번 코드 정리 작업에서 모델을 다시 학습한 수치가 아니다.
 

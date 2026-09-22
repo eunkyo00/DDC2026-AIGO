@@ -1,0 +1,7 @@
+{
+  "fixed_threshold": 0.5,
+  "fixed_threshold_macro_f1": 0.6143640741738654,
+  "head": "label_attention",
+  "evaluation": "internal validation",
+  "selection": "final_epoch"
+}

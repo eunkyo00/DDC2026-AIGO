@@ -1,0 +1,49 @@
+{
+  "head": "label_attention",
+  "model": "klue/roberta-base",
+  "model_revision": "02f94ba5e3fcb7e2a58a390b8639b0fac974a8da",
+  "threshold": 0.5,
+  "loss": "BCE",
+  "selection": "final_epoch",
+  "input": "first_512",
+  "targets": [
+    "고열",
+    "구토",
+    "두통",
+    "복통",
+    "어지러움",
+    "열상",
+    "오심",
+    "전신쇠약",
+    "호흡곤란"
+  ],
+  "environment": {
+    "python": "3.13.15",
+    "torch": "2.11.0+cu128",
+    "transformers": "5.16.1",
+    "accelerate": "1.14.0",
+    "numpy": "2.1.3",
+    "pandas": "2.2.3",
+    "scikit-learn": "1.6.1"
+  },
+  "manifest_sha256": "36f917c70fe5d9bc782c609bbe1f2b68f2cfa3499e0ba53c6070a90e7ae4d0ec",
+  "training": {
+    "output_dir": "/content/m3_head_comparison_v1/label_attention/checkpoints",
+    "num_train_epochs": 4,
+    "per_device_train_batch_size": 8,
+    "per_device_eval_batch_size": 16,
+    "gradient_accumulation_steps": 1,
+    "learning_rate": 2e-05,
+    "warmup_steps": 1000,
+    "weight_decay": 0.01,
+    "logging_steps": 200,
+    "fp16": true,
+    "report_to": "none",
+    "seed": 42,
+    "data_seed": 42,
+    "save_strategy": "epoch",
+    "save_total_limit": 1,
+    "load_best_model_at_end": false,
+    "eval_strategy": "epoch"
+  }
+}

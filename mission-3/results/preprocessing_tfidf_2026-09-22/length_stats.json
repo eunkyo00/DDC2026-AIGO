@@ -1,0 +1,50 @@
+[
+  {
+    "split": "train",
+    "mode": "raw",
+    "count": 23408,
+    "median_tokens": 230.0,
+    "over_512_count": 620,
+    "over_512_rate": 0.02648667122351333
+  },
+  {
+    "split": "train",
+    "mode": "boundary",
+    "count": 23408,
+    "median_tokens": 258.0,
+    "over_512_count": 1079,
+    "over_512_rate": 0.04609535201640465
+  },
+  {
+    "split": "train",
+    "mode": "boundary_normalized",
+    "count": 23408,
+    "median_tokens": 258.0,
+    "over_512_count": 1079,
+    "over_512_rate": 0.04609535201640465
+  },
+  {
+    "split": "dev_valid",
+    "mode": "raw",
+    "count": 5792,
+    "median_tokens": 231.0,
+    "over_512_count": 168,
+    "over_512_rate": 0.029005524861878452
+  },
+  {
+    "split": "dev_valid",
+    "mode": "boundary",
+    "count": 5792,
+    "median_tokens": 259.0,
+    "over_512_count": 313,
+    "over_512_rate": 0.05404005524861878
+  },
+  {
+    "split": "dev_valid",
+    "mode": "boundary_normalized",
+    "count": 5792,
+    "median_tokens": 259.0,
+    "over_512_count": 313,
+    "over_512_rate": 0.05404005524861878
+  }
+]
