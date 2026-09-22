@@ -1,5 +1,8 @@
 # Train 200통화 비교 결과와 다음 결정
 
+후속 상태: 고정 ECAPA Validation은 **96.819725%**로 평가·로컬 검증을 완료했다.
+[최종 결과](validation_results/REPORT.md). 아래 내용은 Train 200통화 예비 비교 기록이다.
+
 기록: 2026-09-22. 사용자 제공 Colab `comparison.json` 출력 기준이다.
 `screen200_results.zip` 원본을 로컬로 받아 call_id·캐시 hash를 독립 재검증하는 작업은 아직 남아 있다.
 
@@ -44,7 +47,7 @@ Train 전체를 추론한다고 모델이 학습되거나 성능이 높아지는
 ECAPA는 기존 Wav2Vec2의 segment 동일 가중 embedding 평균과 집계 방식이 다르다.
 이번 비교는 전체 파이프라인 비교이며 차이 전부를 backbone 효과라고 해석하지 않는다.
 
-## 다음 평가 및 저장
+## 당시 결정한 후속 평가 및 저장
 
 기존 split SHA256 `04b5018778321f775a0bf95949a37636090d4df4e3710b16627dfee309408f06`를 유지한다.
 Internal Validation은 Training 원본에서 분리한 5,597통화(Male 2,620 / Female 2,977)이며

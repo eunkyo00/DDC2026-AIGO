@@ -1,3 +1,7 @@
+> **과거 인계 기록:** 이 문서는 ECAPA 평가 전에 작성됐다. 현재는 평가·로컬 검증 완료이며,
+> 최신 결과는 [README](README.md)와 [Validation REPORT](validation_results/REPORT.md)를 참고한다.
+> 아래 실행 요청은 보관용이고 새로운 작업 지시가 아니다.
+
 # 새 창 시작 프롬프트
 
 아래 내용을 새 Codex 창에 붙여넣어 주세요.

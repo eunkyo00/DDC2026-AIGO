@@ -1,6 +1,7 @@
 # 기존 embedding 기반 분류기 비교
 
-[99% 목표 계획](../../EXPERIMENT_PLAN_99.md)의 A1~A3 실행 코드다.
+[실험 이력](../../EXPERIMENT_LOG.md)에 기록한 A1~A3의 실행 코드다.
+현재 후속 후보는 [99% 목표 계획](../../EXPERIMENT_PLAN_99.md)에 정리했다.
 **CPU만 사용하며 Colab GPU·WAV 재추출·파일 재업로드가 필요하지 않다.**
 기존 baseline 결과는 보존한다. 이 코드는 Train 내부 CV만 실행하고
 Internal Validation 5,597개에 대한 예측·평가는 수행하지 않는다.

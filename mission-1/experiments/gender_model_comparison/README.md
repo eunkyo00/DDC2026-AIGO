@@ -1,113 +1,79 @@
-# WavLM / ECAPA 전체 Colab 예비 비교
+# 성별 사전학습 모델 비교 · ECAPA Validation
 
-## 현재 상태: 200통화 완료, ECAPA Validation 평가 예정
+**완료:** Train 200통화 예비 비교 후 ECAPA를 고정해 Internal Validation 5,597통화를 평가했다.
+ECAPA는 **96.819725% (5,419정답 / 178오답)**로 기존 Wav2Vec2의 97.248526%보다 낮았다.
+기록 기준: 2026-09-22. [Mission 1 전체 이력](../../EXPERIMENT_LOG.md).
 
-사용자 전달 결과는 ECAPA **198/200(99%)**, WavLM **190/200(95%)**, 기존 LR/fusion OOF **195/200(97.5%)**다.
-추가 2,000통화 비교를 생략하고 ECAPA 설정을 고정해 기존 Internal Validation 5,597통화를 평가하기로 했다.
-[결과·선택 이유·고정 설정](SCREEN_200_REPORT.md) · [다른 창 전달 프롬프트](ECAPA_VALIDATION_HANDOFF.md)
+## 결과와 결정
 
-## 완료된 200통화 비교 절차
+| 평가 범위 | 결과 | 검증 상태 |
+|---|---|---|
+| Train 200통화 | ECAPA 99%, WavLM 95%, 기존 LR/fusion OOF 97.5% | 사용자 전달 출력 기준; 원본 ZIP 독립 검증 미완료 |
+| Internal Validation 5,597통화 | ECAPA 96.819725%; Male 97.824427%, Female 95.935506% | 반환 ZIP·모든 ID·확률·샘플 수·hash·identity 로컬 검증 완료 |
+| 추가 Train 2,000통화 / 원본 전체 추론 | 생략 | 성능 결과 없음 |
 
-2,000통화 pilot이 210통화까지 진행된 시점에 실행 시간을 줄이기 위해 단계적으로 비교하도록 변경했다.
-[Screen_200_Resume.ipynb](Screen_200_Resume.ipynb)의 코드 셀 하나를 기존 Colab 노트북에 복사해서 실행한다.
-복사용 Python 파일은 [SCREEN_200_COLAB_CELL.py](SCREEN_200_COLAB_CELL.py)이다.
-기존 pilot 셀을 먼저 중지한다. 복구 셀은 남아 있는 동일 pilot 자식 프로세스도 종료 확인한다.
-기존 8번 `run('pilot')`와 9번 `run('compare')` 셀은 다시 실행하지 않는다.
+ECAPA는 Wav2Vec2 대비 오답 83개를 교정했지만 정답 107개가 회귀했다.
+현재 최고 모델은 Wav2Vec2로 유지하고 Validation 점수에 맞춘 ECAPA 튜닝은 하지 않는다.
+후속 학습 실험은 [별도 계획](../../EXPERIMENT_PLAN_99.md)으로 분리했다.
 
-- 원래 call_id 정렬 순서의 첫 200통화를 두 모델의 공통 표본으로 고정한다(Male 101 / Female 99).
-  결과·정오답·처리 속도로 대상을 선택하지 않는다. 전체 모집단을 정밀하게 대표하는 표본이라고 주장하지 않는다.
-- 원래 서명된 bundle과 2,000통화용 cache는 수정하지 않는다. 호환되는 완료 결과를 별도 `_screen200` 폴더로 재사용한다.
-- 모델 revision, 가중치, GPU, 패키지, 전처리와 추론 조건을 확인한다. 이미 완료한 200통화는 모델 로딩도 생략한다.
-- 두 모델의 동일 200통화가 완료되면 정확도, 성별 정확도, 혼동행렬, 기존 fusion OOF 오답 교정/회귀를 비교한다.
-- 결과는 `_screen200/comparison.json`과 `screen200_results.zip`에 저장한다. 시간은 실행 시작 시 남은 양과 실측값으로 추정한다.
-- 후속 결정은 ECAPA의 고정 Internal Validation 평가다. 추가 2,000통화 비교는 생략한다. 200통화에서는 오답 1개가 0.5%p이므로 작은 차이로 승자를 정하거나 99% 달성을 주장하지 않는다.
-  최종 후보는 별도의 충분한 검증과 기존 fixed Validation 평가가 필요하다.
+## 먼저 볼 파일
 
-복구·선택·손상 캐시 거부는 로컬 테스트로 확인했다. 새 복구 경로의 CUDA 실행은 Colab 결과로 확인한다.
-
-## 기존 전체 notebook
-
-[Gender_Model_Comparison.ipynb](Gender_Model_Comparison.ipynb)에 Drive 연결 → 환경 설치 →
-두 모델 로딩 → 6-call smoke → 20-call benchmark → Train 2,000통화 비교 → 결과 ZIP이 모두 들어 있다.
-**기존 절차 기록:** 두 모델의 Colab 실행과 200통화 비교까지 완료했다. 아래 2,000통화 단계는 현재 실행 대상이 아니다.
-
-## 실행
-
-1. `artifacts/gender_comparison_bundle.zip`을 **내 드라이브/DDC-Colab/**에 업로드한다.
-2. notebook을 Colab에 업로드하고 Python 3 / L4 GPU를 설정한다.
-3. 1~9번을 위에서 아래로 실행한다. 오류 셀에서 중단하고 아래 셀은 실행하지 않는다.
-4. 마지막 `comparison.json` 또는 `gender_comparison_results.zip`을 전달한다.
-
-기존 원본 WAV 폴더 바로가기를 사용한다. embedding NPZ·원본 WAV·모델 weight는 새로 업로드하지 않는다.
-ZIP에는 코드와 sample index, 기존 OOF 예측만 있다. 다운로드한 모델 weight는 Colab 임시 디스크에 둔다.
-
-| 단계 | 시간 안내 |
+| 목적 | 파일 |
 |---|---|
-| Drive·ZIP | 30초–2분, 로그인 별도 |
-| 환경 설치 | 2–5분, 네트워크에 따라 증가 |
-| Preflight | 1–5분, Drive 상태에 따라 증가 |
-| 최초 모델 다운로드·로딩 | 3–10분, 네트워크에 따라 증가 |
-| Smoke / Benchmark | 각각 1–5분 예상, 실제 값 기록 |
-| 2,000-call 비교 | 직전 benchmark의 모델별 예상치 합계를 참고 |
+| 최종 성능·오류 비교 | [validation_results/REPORT.md](validation_results/REPORT.md) |
+| 정량 지표·실측 시간 | [metrics.json](validation_results/metrics.json) |
+| 반환 ZIP·실행 코드 검증 근거 | [verification_provenance.json](validation_results/verification_provenance.json) |
+| ECAPA 실행·resume·환경 복구 | [ECAPA_VALIDATION_README.md](ECAPA_VALIDATION_README.md) |
+| 전체 Colab notebook | [ECAPA_Internal_Validation.ipynb](ECAPA_Internal_Validation.ipynb) |
+| 복사 가능한 전체 셀 코드 | [ECAPA_VALIDATION_COLAB.py](ECAPA_VALIDATION_COLAB.py) |
+| Train 200통화 선택·결과 | [SCREEN_200_REPORT.md](SCREEN_200_REPORT.md) |
+| 과거 2,000통화 계획·200통화 resume | [docs/TRAIN_SCREENING_ARCHIVE.md](docs/TRAIN_SCREENING_ARCHIVE.md) |
 
-위 시간은 GPU 실측값이 아니다. benchmark projection에는 모델 로딩과 cache flush 등이 빠져 있으며,
-Drive 변동도 있으므로 전체 소요시간을 보장하지 않는다.
+## 코드와 산출물 구조
 
-## 고정 정의
-
-- 모델: `tiantiaf/wavlm-large-age-sex`, `JaesungHuh/voice-gender-classifier`.
-- 코드·checkpoint revision 고정. 원본과 수정 코드 hash는 `model_sources.json`에 기록.
-- FP32·Frozen·batch size 1, autocast·TF32 끔. 학습·threshold tuning 없음.
-- Train 22,388개에서 seed 42, 성별 층화로 같은 2,000개 선정: Male 936 / Female 1,064.
-- caller segments 31,269개 전부 사용. Internal Validation 추론 없음.
-- 기존 6-call fixture에는 holdout이 포함되어 새 Train 전용 smoke 6개·benchmark 20개를 고정했다.
-- 원본 8kHz mono, round 기반 caller crop, 기존 polyphase 8→16kHz resampling 유지.
-- **새 입력:** caller crop을 시간순 연결 → 최대 15초의 균등 창 → 모델별 확률.
-  3초 미만 전체 caller 음성만 단일 입력을 3초까지 zero-pad하고 개수를 기록한다.
-- 원본 caller 샘플을 버리지 않으며 기존 구간 중복도 임의 제거하지 않는다.
-- 창별 Female/Male 확률을 실제 샘플 수로 가중 평균한다. ECAPA의 원본 M/F 순서는 F/M으로 바꾼다.
-- 기존 Wav2Vec2는 segment 동일 가중 embedding 평균이다. **입력·집계도 다른 파이프라인 비교**이며,
-  차이를 backbone 하나의 효과로 해석하지 않는다.
-
-Vox-Profile 공식 구현은 3초 미만 입력의 신뢰성과 15초 초과 길이에 주의를 명시한다.
-caller 연결은 이 조건을 고려한 새 설계다. 연결 경계와 초단기 입력 padding의 한계가 있으며,
-한국어 8kHz 음성과 사전학습 데이터의 차이가 없어지는 것은 아니다.
-
-## 환경과 원본 코드 수정
-
-새 subprocess와 system-site-packages 가상환경을 사용하여 기존 NumPy import 잔류 문제를 피한다.
-Colab 기본 CUDA torch를 유지하고 torchaudio 버전을 맞춘다. 모델은 순서대로 GPU에 올린다.
-
-WavLM 공식 코드에 맞춰 Transformers 4.46.3을 사용한다. 불필요한 SpeechBrain mask 함수를
-batch-one full-length mask로 대체하고 processor에 CPU NumPy를 전달한다. backbone 중복 다운로드를
-피하기 위해 고정 config로 초기화한 뒤 성별 checkpoint의 전체 safetensors를 strict=True로 읽는다.
-누락 weight는 무시하지 않는다. LoRA는 weight 로딩 후 eval에서 병합된다. 이 checkpoint에서 꺼진
-RevGrad import를 제거했다. 원본 라이선스는 vendor에 보존한다.
-
-원본: [Vox-Profile](https://github.com/tiantiaf0627/vox-profile-release),
-[ECAPA gender](https://github.com/JaesungHuh/voice-gender-classifier).
-
-## 저장·복구
-
-Drive의 `DDC-Colab/gender_comparison_v1`에 통화별 JSONL을 저장하고 10통화마다 fsync한다.
-동일 환경 재실행 시 완료 통화는 건너뛴다. 마지막 불완전 JSON 행만 복구하며 내부 손상은 중단한다.
-GPU·패키지·코드·data_root identity가 다르면 cache 혼합을 거부한다. 실패는 로그를 남기고 즉시 중단한다.
-문제 해결 후 실패 통화를 재시도하며, 실패 통화를 제외하고 정확도를 계산하지 않는다.
-같은 output에 두 notebook을 동시에 실행하지 않는다.
-
-새 Colab 세션에서는 1~3번을 다시 실행한 뒤 이전에 완료한 단계 다음부터 이어갈 수 있다.
-GPU와 패키지 조건이 다르면 새 output을 사용하거나 원래 환경을 복원해야 한다.
-
-## 로컬 검증
-
-Train-only coverage, fixed split, OOF hash, 구간 수, bundle hash, crop/resampling,
-창 샘플 보존, 불완전 로그 복구, notebook JSON/Python 문법을 검사한다.
-**실제 모델 CUDA 로딩·forward 검증은 Colab의 5번 셀에서 수행한다.**
-
-```bash
-.venv/bin/python mission-1/experiments/gender_model_comparison/build_handoff.py
-.venv/bin/python -m unittest discover -s mission-1/experiments/gender_model_comparison -p 'test_*.py'
+```text
+compare_models.py / vendor/         기존 고정 모델·전처리 (변경하지 않음)
+build_validation.py                Validation metadata·bundle 생성
+make_validation_notebook.py         notebook와 전체 셀 코드 생성
+ecapa_validation.py                L4 preflight·추론·resume·export
+validation_common.py               GPU 없이 수행하는 공통 무결성 검사
+analyze_ecapa_validation.py         현재 bundle과 일치하는 결과 분석
+verify_returned_validation.py       이번 반환 ZIP의 과거 코드 버전 검증·분석
+validation_bundle_manifest.json    입력·코드·baseline hash
+validation_results/                검증 완료 REPORT·metrics·provenance
+artifacts/ / validation_data/       로컬 생성 ZIP·jobs, Git 제외
+docs/                              과거 실행 절차
 ```
 
-2,000통화는 예비 비교다. 작은 소수점 차이로 최종 승자를 확정하지 않는다.
-전체 27,985-call 추출·추가 학습·최종 Validation 평가를 자동 실행하지 않는다.
+기존 Train용 `bundle_manifest.json`, `build_handoff.py`, `screen_200.py`와 두 Train notebook은
+과거 실험 재현을 위해 보존한다. Validation에서는 Train 전용 `load_jobs()`를 사용하지 않는다.
+`ECAPA_VALIDATION_HANDOFF.md`도 평가 전 인계 기록이며 최신 상태는 이 README와 최종 REPORT다.
+코드·데이터 경로 이동으로 기존 hash를 깨뜨리지 않도록 실행 파일은 원래 위치에 유지했다.
+
+## 로컬 재검증
+
+이번 Colab 결과 ZIP은 실행 후 패키지 오류 표시 문구를 보완하기 전 코드에서 생성됐다.
+아래 명령은 알려진 진단 문구 변경만 복원하고 모든 실행 파일 hash를 확인한 뒤 분석한다.
+GPU·추가 학습·재추론은 필요 없다.
+
+```bash
+python3 mission-1/experiments/gender_model_comparison/verify_returned_validation.py \
+  /absolute/path/ecapa_validation_results.zip
+```
+
+Git에 포함하지 않은 원본 metadata·생성 jobs는 [재현 안내](ECAPA_VALIDATION_README.md)에 따라 준비한다.
+현재 코드로 새로 생성한 결과는 `analyze_ecapa_validation.py`로 분석한다.
+
+## 검증과 공유 범위
+
+실제 Colab L4 추론은 사용자가 실행했고, 반환 ZIP을 로컬 검증했다.
+13개 CPU 테스트가 통과했으며 합성 테스트 결과는 실제 성능표에 포함하지 않는다.
+
+```bash
+.venv/bin/python -m unittest discover \
+  -s mission-1/experiments/gender_model_comparison -p 'test_*.py' -v
+```
+
+정답은 평가에만 사용했다. ECAPA·WavLM 외부 classifier에 추가 학습·threshold tuning을 하지 않았다.
+ECAPA와 Wav2Vec2는 통화 집계도 다르므로 전체 파이프라인 비교다.
+원본 WAV·모델 weight·대용량 cache·반환 ZIP·통화별 상세 CSV는 Git에서 제외한다.
